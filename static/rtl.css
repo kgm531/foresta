@@ -1,0 +1,141 @@
+/* ══════════════════════════════════════════════
+   Foresta — RTL / Arabic language overrides
+   Applied when [dir="rtl"] is on <html>
+══════════════════════════════════════════════ */
+
+/* Arabic font */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+
+[data-lang="ar"] body,
+[data-lang="ar"] button,
+[data-lang="ar"] input,
+[data-lang="ar"] textarea,
+[data-lang="ar"] select {
+  font-family: 'Tajawal', 'Montserrat', sans-serif;
+  letter-spacing: 0 !important;
+}
+
+/* Keep serif headings with Arabic font */
+[data-lang="ar"] h1,
+[data-lang="ar"] h2,
+[data-lang="ar"] h3,
+[data-lang="ar"] .logo-text,
+[data-lang="ar"] .footer-logo-text {
+  font-family: 'Tajawal', serif;
+  letter-spacing: 0 !important;
+}
+
+/* ── NAV RTL ── */
+[dir="rtl"] nav {
+  direction: rtl;
+}
+[dir="rtl"] .nav-links {
+  flex-direction: row-reverse;
+}
+[dir="rtl"] .nav-actions {
+  flex-direction: row-reverse;
+}
+
+/* ── HERO RTL ── */
+[dir="rtl"] .hero-content,
+[dir="rtl"] .hero-text {
+  text-align: right;
+}
+
+/* ── GENERAL RTL FLEX ── */
+[dir="rtl"] .d-flex,
+[dir="rtl"] .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Cards & product grids – keep LTR grid but text RTL */
+[dir="rtl"] .prod-name,
+[dir="rtl"] .prod-meta,
+[dir="rtl"] .prod-price {
+  text-align: right;
+}
+
+/* ── FOOTER RTL ── */
+[dir="rtl"] .footer-cols {
+  direction: rtl;
+}
+
+/* ── FORM RTL ── */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] label {
+  display: block;
+  text-align: right;
+}
+
+/* ── CART / CHECKOUT RTL ── */
+[dir="rtl"] .cart-item,
+[dir="rtl"] .order-summary-line {
+  flex-direction: row-reverse;
+}
+
+/* ── TOAST RTL ── */
+[dir="rtl"] .toast-container {
+  right: auto;
+  left: 28px;
+}
+[dir="rtl"] .toast {
+  transform: translateX(-120%);
+}
+[dir="rtl"] .toast.show {
+  transform: translateX(0);
+}
+
+/* ── PRODUCT DETAIL RTL ── */
+[dir="rtl"] .pd-info,
+[dir="rtl"] .product-info {
+  text-align: right;
+}
+
+[dir="rtl"] .size-grid {
+  direction: rtl;
+}
+
+/* ── LANGUAGE TOGGLE BUTTON ── */
+.lang-toggle {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.85);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.lang-toggle:hover {
+  border-color: rgba(255,255,255,0.7);
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Dark background navbars */
+nav .lang-toggle {
+  border-color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.8);
+}
+
+/* Light background pages (cart/checkout headers) */
+.nav-light .lang-toggle {
+  border-color: rgba(26,48,33,0.3);
+  color: rgba(26,48,33,0.7);
+}
+
+.nav-light .lang-toggle:hover {
+  border-color: rgba(26,48,33,0.7);
+  color: #1A3021;
+  background: rgba(26,48,33,0.05);
+}

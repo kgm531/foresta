@@ -1,0 +1,387 @@
+{% extends "admin/base.html" %}
+{% block title %}Order #{{ order.order_id }}{% endblock %}
+{% block breadcrumb %}Order #{{ order.order_id }}{% endblock %}
+
+{% block head %}
+<style>
+  .order-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── Order items ── */
+  .order-item-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--linen);
+  }
+
+  .order-item-row:last-child { border-bottom: none; }
+
+  .item-img {
+    width: 60px; height: 72px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .item-img-placeholder {
+    width: 60px; height: 72px;
+    border-radius: 8px;
+    background: var(--linen);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .item-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .item-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .item-price { font-size: 14px; font-weight: 600; color: var(--forest); margin-top: 4px; }
+
+  /* ── Customer card ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .info-item {}
+  .info-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .info-value { font-size: 13px; color: var(--text); }
+
+  /* ── Order summary ── */
+  .summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--linen);
+  }
+  .summary-line:last-child { border-bottom: none; }
+  .summary-line.total {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--forest);
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    padding-top: 12px;
+    border-bottom: none;
+  }
+
+  /* ── Timeline ── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 16px;
+    position: relative;
+  }
+
+  .timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 22px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .timeline-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    border: 2px solid var(--border);
+    background: #fff;
+  }
+
+  .timeline-dot.done {
+    background: var(--forest);
+    border-color: var(--forest);
+    color: #fff;
+  }
+
+  .timeline-text { font-size: 12px; color: var(--muted); padding-top: 3px; }
+  .timeline-text strong { display: block; color: var(--text); font-size: 13px; font-weight: 500; }
+
+  /* ── Status form ── */
+  .status-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    margin-bottom: 10px;
+  }
+
+  .status-select:focus { border-color: var(--sage); }
+
+  @media (max-width: 960px) {
+    .order-grid { grid-template-columns: 1fr; }
+    .info-grid  { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Order #{{ order.order_id }}</h1>
+    <p class="page-sub">
+      Placed on {{ order.created_at.strftime('%A, %d %B %Y at %H:%M') }}
+      &nbsp;·&nbsp;
+      {% set badge_class = {'confirmed':'badge-gray','processing':'badge-amber','shipped':'badge-blue','delivered':'badge-green','cancelled':'badge-red'} %}
+      <span class="badge {{ badge_class.get(order.status,'badge-gray') }}">{{ order.status }}</span>
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="/admin/orders" class="btn btn-secondary">← All Orders</a>
+    <button onclick="confirmDeleteOrder({{ order.id }}, '{{ order.order_id }}')"
+            class="btn btn-danger">Delete Order</button>
+  </div>
+</div>
+
+<div class="order-grid">
+
+  <!-- ── LEFT ── -->
+  <div>
+    <!-- Items -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">
+          Order Items ({{ order.items|length }})
+        </span>
+      </div>
+      <div style="padding:4px 20px;">
+        {% for item in order.items %}
+        <div class="order-item-row">
+          {% if item.product_cover %}
+            <img class="item-img" src="{{ item.product_cover }}" alt="{{ item.product_name }}"
+                 onerror="this.style.display='none'"/>
+          {% else %}
+            <div class="item-img-placeholder">🌿</div>
+          {% endif %}
+          <div style="flex:1;">
+            <div class="item-name">{{ item.product_name }}</div>
+            <div class="item-meta">
+              Size: {{ item.size or 'N/A' }}
+              &nbsp;·&nbsp; Qty: {{ item.quantity }}
+            </div>
+            <div class="item-price">${{ "%.2f"|format(item.line_total) }}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:12px;color:var(--muted);">${{ "%.2f"|format(item.price) }} each</div>
+            <a href="/product/{{ item.product_slug }}" target="_blank"
+               class="btn btn-secondary btn-xs" style="margin-top:8px;">View</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Customer info -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">Customer Information</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Full Name</div>
+            <div class="info-value">{{ order.name }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">
+              <a href="mailto:{{ order.email }}" style="color:var(--sage);text-decoration:none;">
+                {{ order.email }}
+              </a>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Phone</div>
+            <div class="info-value">{{ order.phone or '—' }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Country</div>
+            <div class="info-value">{{ order.country or '—' }}</div>
+          </div>
+          <div class="info-item" style="grid-column:1/-1;">
+            <div class="info-label">Shipping Address</div>
+            <div class="info-value">
+              {{ order.address }}{% if order.city %}, {{ order.city }}{% endif %}
+              {% if order.postal %} {{ order.postal }}{% endif %}
+              {% if order.country %}, {{ order.country }}{% endif %}
+            </div>
+          </div>
+          {% if order.gift_note %}
+          <div class="info-item" style="grid-column:1/-1;">
+            <div class="info-label">Gift Note</div>
+            <div class="info-value" style="font-style:italic;color:var(--muted);">
+              "{{ order.gift_note }}"
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Order timeline -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">Order Timeline</span>
+      </div>
+      <div style="padding:20px;">
+        {% set statuses = ['confirmed','processing','shipped','delivered'] %}
+        {% set current_idx = statuses.index(order.status) if order.status in statuses else -1 %}
+        <div class="timeline">
+          {% for s in statuses %}
+            {% set done = loop.index0 <= current_idx and order.status != 'cancelled' %}
+            <div class="timeline-item">
+              <div class="timeline-dot {{ 'done' if done }}">
+                {{ '✓' if done else '' }}
+              </div>
+              <div class="timeline-text">
+                <strong>{{ s|capitalize }}</strong>
+                {% if done and loop.index0 == current_idx %}
+                  {{ order.created_at.strftime('%d %b %Y') }}
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+          {% if order.status == 'cancelled' %}
+            <div class="timeline-item">
+              <div class="timeline-dot" style="background:#8B2020;border-color:#8B2020;color:#fff;">✗</div>
+              <div class="timeline-text">
+                <strong style="color:#8B2020;">Cancelled</strong>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT ── -->
+  <div>
+
+    <!-- Order summary -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">Order Summary</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <div class="summary-line">
+          <span class="text-muted">Subtotal</span>
+          <span>${{ "%.2f"|format(order.subtotal) }}</span>
+        </div>
+        <div class="summary-line">
+          <span class="text-muted">Shipping</span>
+          <span>{{ 'Free' if order.shipping == 0 else '$%.2f'|format(order.shipping) }}</span>
+        </div>
+        <div class="summary-line total">
+          <span>Total</span>
+          <span>${{ "%.2f"|format(order.total) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update status -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">Update Status</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <form method="post" action="/admin/orders/{{ order.id }}/status">
+          <select class="status-select" name="status">
+            {% for s in ['confirmed','processing','shipped','delivered','cancelled'] %}
+              <option value="{{ s }}" {{ 'selected' if order.status == s }}>
+                {{ s|capitalize }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+            Update Status
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-card" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:600;color:var(--forest);">Quick Actions</span>
+      </div>
+      <div style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;">
+        <a href="mailto:{{ order.email }}?subject=Your Foresta Order %23{{ order.order_id }}"
+           class="btn btn-secondary" style="justify-content:center;">
+          📧 Email Customer
+        </a>
+        <a href="/admin/orders" class="btn btn-secondary" style="justify-content:center;">
+          ← Back to Orders
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete modal -->
+<div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;
+     align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:100%;max-width:380px;margin:16px;">
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--forest);margin-bottom:8px;">
+      Delete Order?
+    </h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px;" id="deleteModalText"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+      <form id="deleteForm" method="post">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function confirmDeleteOrder(id, orderId) {
+    document.getElementById('deleteModalText').textContent =
+      'Delete order #' + orderId + '? This action cannot be undone.';
+    document.getElementById('deleteForm').action = '/admin/orders/' + id + '/delete';
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDeleteModal();
+  });
+</script>
+{% endblock %}

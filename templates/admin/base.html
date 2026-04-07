@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Dashboard{% endblock %} — Foresta Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/rtl.css"/>
+  {% block head %}{% endblock %}
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --forest:  #1A3021;
+      --sage:    #2E5D4B;
+      --moss:    #4A7C59;
+      --cream:   #F7F3EE;
+      --linen:   #EDE8E0;
+      --bark:    #8C7355;
+      --text:    #2A2A2A;
+      --muted:   #7A7165;
+      --border:  #D8D0C4;
+      --error:   #8B2020;
+      --warn:    #A0522D;
+      --success: #2E5D4B;
+      --sidebar-w: 240px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--forest);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform .3s;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 24px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .sidebar-logo-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .sidebar-logo-sub {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      padding: 0 16px 8px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.28);
+      margin-top: 16px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,.62);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 400;
+      border-radius: 0;
+      transition: background .15s, color .15s;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,.07);
+      color: rgba(255,255,255,.9);
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: rgba(247,243,238,.7);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,.15);
+      color: rgba(255,255,255,.75);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    .sidebar-footer a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.45);
+      text-decoration: none;
+      font-size: 12px;
+      transition: color .15s;
+    }
+
+    .sidebar-footer a:hover { color: rgba(255,255,255,.8); }
+
+    /* ── MAIN ── */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+
+    .topbar-breadcrumb {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .topbar-breadcrumb strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+    .topbar-store-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: border-color .2s, color .2s;
+    }
+
+    .topbar-store-link:hover { border-color: var(--sage); color: var(--sage); }
+
+    .topbar-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--forest);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 32px;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      font-weight: 600;
+      color: var(--forest);
+      line-height: 1.1;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--forest);
+    }
+
+    .card-body { padding: 24px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: background .15s, border-color .15s, color .15s, transform .1s;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary {
+      background: var(--forest);
+      color: #fff;
+      border-color: var(--forest);
+    }
+    .btn-primary:hover { background: var(--sage); border-color: var(--sage); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--muted); background: var(--linen); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--error);
+      border-color: rgba(139,32,32,.25);
+    }
+    .btn-danger:hover { background: #FDF2F2; border-color: var(--error); }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-xs { padding: 4px 9px; font-size: 11px; border-radius: 5px; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-green  { background: #EAF4ED; color: #2E5D4B; }
+    .badge-amber  { background: #FDF6ED; color: #A0522D; }
+    .badge-red    { background: #FDF2F2; color: #8B2020; }
+    .badge-blue   { background: #EEF4FB; color: #2356A0; }
+    .badge-gray   { background: var(--linen); color: var(--muted); }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--linen);
+      transition: background .1s;
+    }
+
+    tbody tr:hover { background: var(--cream); }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 20px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .form-label .req { color: var(--error); margin-left: 2px; }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(46,93,75,.08);
+    }
+
+    .form-control::placeholder { color: #C4BDB5; }
+
+    textarea.form-control { resize: vertical; min-height: 90px; }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-row-2 { grid-template-columns: 1fr 1fr; }
+    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    select.form-control { cursor: pointer; }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 20px 0 4px;
+    }
+
+    .page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      text-decoration: none;
+      transition: background .15s, border-color .15s;
+    }
+
+    .page-btn:hover { background: var(--linen); }
+    .page-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+    .page-btn.disabled { opacity: .4; pointer-events: none; }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-success { background: #EAF4ED; color: var(--success); border: 1px solid rgba(46,93,75,.2); }
+    .alert-error   { background: #FDF2F2; color: var(--error);   border: 1px solid rgba(139,32,32,.2); }
+    .alert-warn    { background: #FDF6ED; color: var(--warn);    border: 1px solid rgba(160,82,45,.2); }
+
+    /* ── MISC ── */
+    .text-muted { color: var(--muted); }
+    .text-sm    { font-size: 12px; }
+    .font-mono  { font-family: monospace; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-wrap { margin-left: 0; }
+      .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Foresta</div>
+      <div class="sidebar-logo-sub">Store Admin</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a href="/admin/dashboard" class="nav-item {% if active_nav=='dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+
+      <div class="nav-section">Catalogue</div>
+      <a href="/admin/products" class="nav-item {% if active_nav=='products' %}active{% endif %}">
+        <span class="nav-icon">🛍</span> Products
+      </a>
+      <a href="/admin/products/new" class="nav-item {% if active_nav=='product-new' %}active{% endif %}">
+        <span class="nav-icon">➕</span> Add Product
+      </a>
+
+      <div class="nav-section">Commerce</div>
+      <a href="/admin/orders" class="nav-item {% if active_nav=='orders' %}active{% endif %}">
+        <span class="nav-icon">📦</span> Orders
+      </a>
+      <a href="/admin/subscribers" class="nav-item {% if active_nav=='subscribers' %}active{% endif %}">
+        <span class="nav-icon">📧</span> Subscribers
+      </a>
+
+      <div class="nav-section">Store</div>
+      <a href="/" target="_blank" class="nav-item">
+        <span class="nav-icon">🌿</span> View Store
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="/admin/logout">
+        <span>⎋</span> Sign Out
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          Admin / <strong>{% block breadcrumb %}{% endblock %}</strong>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="lang-toggle" onclick="toggleLanguage()" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:border-color .2s,color .2s;" onmouseover="this.style.borderColor='var(--sage)';this.style.color='var(--sage)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">عربي</button>
+        <a href="/" target="_blank" class="topbar-store-link">
+          <span>🌿</span> View Store
+        </a>
+        <div class="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <main class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'success' if cat=='success' else 'error' if cat=='error' else 'warn' }}">
+            {{ '✓' if cat=='success' else '⚠' }} {{ msg }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% block scripts %}{% endblock %}
+  <script src="/static/i18n.js"></script>
+</body>
+</html>

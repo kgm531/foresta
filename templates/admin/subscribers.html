@@ -1,0 +1,301 @@
+{% extends "admin/base.html" %}
+{% block title %}Subscribers{% endblock %}
+{% block breadcrumb %}Subscribers{% endblock %}
+
+{% block head %}
+<style>
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+  }
+
+  .search-input-wrap input {
+    width: 100%;
+    padding: 9px 14px 9px 36px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-input-wrap input:focus { border-color: var(--sage); }
+
+  .search-input-wrap::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .filter-select {
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .source-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .source-newsletter { background: #EAF4ED; color: #2E5D4B; }
+  .source-checkout   { background: #EEF4FB; color: #2356A0; }
+  .source-other      { background: var(--linen); color: var(--muted); }
+
+  .email-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .email-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--forest);
+    color: rgba(255,255,255,.8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  /* Stats bar */
+  .sub-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .sub-stat {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .sub-stat-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .sub-stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--forest);
+    line-height: 1;
+  }
+
+  .sub-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Export button */
+  .export-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  @media (max-width: 700px) {
+    .sub-stats { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Subscribers</h1>
+    <p class="page-sub">{{ pagination.total }} subscriber{{ 's' if pagination.total != 1 }}</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="sub-stats">
+  <div class="sub-stat">
+    <div class="sub-stat-icon" style="background:#EAF4ED;">📧</div>
+    <div>
+      <div class="sub-stat-value">{{ pagination.total }}</div>
+      <div class="sub-stat-label">Total Subscribers</div>
+    </div>
+  </div>
+  <div class="sub-stat">
+    <div class="sub-stat-icon" style="background:#EEF4FB;">🛍</div>
+    <div>
+      <div class="sub-stat-value">{{ source_counts.get('checkout', 0) }}</div>
+      <div class="sub-stat-label">From Checkout</div>
+    </div>
+  </div>
+  <div class="sub-stat">
+    <div class="sub-stat-icon" style="background:#FDF6ED;">🌿</div>
+    <div>
+      <div class="sub-stat-value">{{ source_counts.get('newsletter', 0) }}</div>
+      <div class="sub-stat-label">Newsletter Signups</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar">
+  <div class="search-input-wrap">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by email…"/>
+  </div>
+  <select class="filter-select" name="source" onchange="this.form.submit()">
+    <option value="">All Sources</option>
+    <option value="newsletter" {{ 'selected' if source=='newsletter' }}>Newsletter</option>
+    <option value="checkout"   {{ 'selected' if source=='checkout' }}>Checkout</option>
+  </select>
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q or source %}
+    <a href="/admin/subscribers" class="btn btn-secondary">Clear</a>
+  {% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if subscribers %}
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Source</th>
+          <th>Subscribed</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in subscribers %}
+        <tr>
+          <td>
+            <div class="email-cell">
+              <div class="email-avatar">{{ s.email[0] }}</div>
+              <span style="font-size:13px;">{{ s.email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="source-badge source-{{ s.source }}">{{ s.source }}</span>
+          </td>
+          <td>
+            <div style="font-size:13px;">{{ s.created_at.strftime('%d %b %Y') }}</div>
+            <div class="text-sm text-muted">{{ s.created_at.strftime('%H:%M') }}</div>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <a href="mailto:{{ s.email }}" class="btn btn-secondary btn-xs" title="Send email">📧</a>
+              <button onclick="confirmDelete({{ s.id }}, '{{ s.email|e }}')"
+                      class="btn btn-danger btn-xs">Remove</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No subscribers found</div>
+        <p class="text-muted text-sm">
+          {% if q or source %}Try adjusting your search{% else %}Subscribers will appear when customers sign up{% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div style="padding:16px 24px;border-top:1px solid var(--border);">
+    <div class="pagination">
+      {% if pagination.has_prev %}
+        <a class="page-btn" href="?page={{ pagination.prev_num }}&q={{ q }}&source={{ source }}">‹</a>
+      {% else %}
+        <span class="page-btn disabled">‹</span>
+      {% endif %}
+
+      {% for p in range(1, pagination.pages + 1) %}
+        <a class="page-btn {{ 'active' if p == pagination.page }}"
+           href="?page={{ p }}&q={{ q }}&source={{ source }}">{{ p }}</a>
+      {% endfor %}
+
+      {% if pagination.has_next %}
+        <a class="page-btn" href="?page={{ pagination.next_num }}&q={{ q }}&source={{ source }}">›</a>
+      {% else %}
+        <span class="page-btn disabled">›</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete modal -->
+<div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;
+     align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:100%;max-width:380px;margin:16px;">
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--forest);margin-bottom:8px;">
+      Remove Subscriber?
+    </h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px;" id="deleteModalText"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+      <form id="deleteForm" method="post">
+        <button type="submit" class="btn btn-danger">Remove</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function confirmDelete(id, email) {
+    document.getElementById('deleteModalText').textContent =
+      'Remove ' + email + ' from your subscriber list?';
+    document.getElementById('deleteForm').action = '/admin/subscribers/' + id + '/delete';
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDeleteModal();
+  });
+</script>
+{% endblock %}

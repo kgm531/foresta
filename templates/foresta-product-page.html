@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Foresta — The Canopy Linen Jacket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===================== CSS VARIABLES ===================== */
+    :root {
+      --primary-green: #1A3021;
+      --sand-beige: #F5F5DC;
+      --accent-wood: #A0522D;
+      --charcoal-text: #2F4F4F;
+      --light-sage: #C8D5B9;
+      --pale-moss: #E8EDE4;
+      --off-white: #FAFAF5;
+      --border-light: rgba(47, 79, 79, 0.12);
+      --shadow-soft: 0 4px 32px rgba(26, 48, 33, 0.08);
+      --shadow-medium: 0 12px 48px rgba(26, 48, 33, 0.14);
+
+      --bg: var(--sand-beige);
+      --bg-card: var(--off-white);
+      --bg-subtle: var(--pale-moss);
+      --text-primary: var(--primary-green);
+      --text-body: var(--charcoal-text);
+      --text-muted: rgba(47, 79, 79, 0.55);
+      --nav-bg: var(--primary-green);
+      --btn-bg: var(--primary-green);
+      --btn-text: var(--sand-beige);
+      --border: var(--border-light);
+      --accent: var(--accent-wood);
+
+      --transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius: 4px;
+      --radius-lg: 12px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0D1A12;
+      --bg-card: #142019;
+      --bg-subtle: #1A2A1F;
+      --text-primary: #E8EDE4;
+      --text-body: #C8D5B9;
+      --text-muted: rgba(200, 213, 185, 0.5);
+      --nav-bg: #0A1209;
+      --btn-bg: #C8D5B9;
+      --btn-text: #0D1A12;
+      --border: rgba(200, 213, 185, 0.1);
+      --accent: #C8966B;
+      --shadow-soft: 0 4px 32px rgba(0, 0, 0, 0.3);
+      --shadow-medium: 0 12px 48px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text-body);
+      transition: background var(--transition), color var(--transition);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===================== NAVBAR ===================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--nav-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      transition: background var(--transition);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-mark {
+      width: 34px;
+      height: 34px;
+    }
+
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--sand-beige);
+      transition: color var(--transition);
+    }
+
+    [data-theme="dark"] .nav-logo-text { color: #C8D5B9; }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245, 245, 220, 0.7);
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+
+    .nav-links a:hover { color: var(--sand-beige); }
+    [data-theme="dark"] .nav-links a { color: rgba(200, 213, 185, 0.6); }
+    [data-theme="dark"] .nav-links a:hover { color: #C8D5B9; }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+
+    /* Dark Mode Toggle */
+    .dark-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 24px;
+      border: 1px solid rgba(245, 245, 220, 0.2);
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .dark-toggle:hover { background: rgba(245, 245, 220, 0.08); border-color: rgba(245, 245, 220, 0.4); }
+
+    .dark-toggle-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(245, 245, 220, 0.75);
+      transition: color var(--transition);
+    }
+
+    [data-theme="dark"] .dark-toggle-label { color: rgba(200, 213, 185, 0.75); }
+
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      background: rgba(245, 245, 220, 0.15);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.35s;
+    }
+
+    [data-theme="dark"] .toggle-track { background: #C8D5B9; }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--sand-beige);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s;
+    }
+
+    [data-theme="dark"] .toggle-thumb { transform: translateX(16px); background: #1A3021; }
+
+    /* ===================== HERO / PAGE LAYOUT ===================== */
+    main {
+      padding-top: 68px;
+      min-height: 100vh;
+    }
+
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 68px);
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* ===================== GALLERY SIDE ===================== */
+    .gallery-side {
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 68px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 40px 32px 40px 48px;
+    }
+
+    .main-image-wrapper {
+      flex: 1;
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--bg-subtle);
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .main-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      user-drag: none;
+      transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .main-image-wrapper img.fade-out {
+      opacity: 0;
+      transform: scale(1.03);
+    }
+
+    /* Shimmer overlay */
+    .shimmer-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(200, 213, 185, 0.3) 50%,
+        transparent 60%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite linear;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      border-radius: var(--radius-lg);
+    }
+
+    .shimmer-overlay.active { opacity: 1; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Image badge */
+    .image-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(26, 48, 33, 0.8);
+      backdrop-filter: blur(8px);
+      color: var(--sand-beige);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border-radius: 24px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+
+    .image-badge.visible { opacity: 1; transform: translateY(0); }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      background: var(--bg-subtle);
+      border-radius: 30px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      align-self: center;
+    }
+
+    .view-btn {
+      padding: 9px 22px;
+      border-radius: 26px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .view-btn.active {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      box-shadow: 0 2px 12px rgba(26, 48, 33, 0.2);
+    }
+
+    /* Thumbnail strip */
+    .thumb-strip {
+      display: flex;
+      gap: 10px;
+    }
+
+    .thumb {
+      width: 68px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.25s, transform 0.25s;
+      flex-shrink: 0;
+    }
+
+    .thumb.active { border-color: var(--primary-green); }
+    [data-theme="dark"] .thumb.active { border-color: #C8D5B9; }
+    .thumb:hover { transform: translateY(-2px); }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ===================== INFO SIDE ===================== */
+    .info-side {
+      padding: 56px 48px 56px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .breadcrumb {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .breadcrumb span { color: var(--accent); }
+
+    .product-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.15;
+      margin-bottom: 10px;
+      transition: color var(--transition);
+    }
+
+    .product-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    /* Rating */
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .stars { color: var(--accent); font-size: 0.85rem; letter-spacing: 2px; }
+
+    .rating-count {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    /* Price */
+    .price-block {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .price-current {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: color var(--transition);
+    }
+
+    .price-original {
+      font-size: 1rem;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .price-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* Eco strip */
+    .eco-strip {
+      display: flex;
+      gap: 20px;
+      padding: 18px 20px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .eco-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .eco-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .eco-text {
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+      transition: background var(--transition);
+    }
+
+    /* Size selector */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .size-guide-link {
+      font-size: 0.65rem;
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font-weight: 500;
+    }
+
+    .size-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .size-btn {
+      min-width: 48px;
+      height: 48px;
+      padding: 0 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      color: var(--text-body);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .size-btn:hover { border-color: var(--primary-green); }
+    [data-theme="dark"] .size-btn:hover { border-color: #C8D5B9; }
+
+    .size-btn.active {
+      background: var(--primary-green);
+      color: var(--sand-beige);
+      border-color: var(--primary-green);
+    }
+
+    [data-theme="dark"] .size-btn.active {
+      background: #C8D5B9;
+      color: #0D1A12;
+      border-color: #C8D5B9;
+    }
+
+    .size-btn.unavailable {
+      opacity: 0.3;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+
+    /* CTA Buttons */
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(160, 82, 45, 0.35);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      color: var(--text-primary);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ===================== VIRTUAL MIRROR ===================== */
+    .mirror-trigger {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 22px;
+      background: linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-card) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 24px;
+    }
+
+    .mirror-trigger:hover {
+      border-color: rgba(26, 48, 33, 0.3);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .mirror-trigger:hover { border-color: rgba(200, 213, 185, 0.2); }
+
+    .mirror-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background var(--transition);
+    }
+
+    [data-theme="dark"] .mirror-icon { background: #C8D5B9; }
+
+    .mirror-icon svg { width: 20px; height: 20px; }
+
+    .mirror-trigger-text h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+      transition: color var(--transition);
+    }
+
+    .mirror-trigger-text p {
+      font-size: 0.67rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .mirror-chevron {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-size: 1rem;
+      transition: transform 0.3s;
+    }
+
+    .mirror-trigger.open .mirror-chevron { transform: rotate(180deg); }
+
+    /* Mirror Panel */
+    .mirror-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+      opacity: 0;
+      margin-bottom: 0;
+    }
+
+    .mirror-panel.open {
+      max-height: 600px;
+      opacity: 1;
+      margin-bottom: 24px;
+    }
+
+    .mirror-panel-inner {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .mirror-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      transition: color var(--transition);
+    }
+
+    .mirror-subheading {
+      font-size: 0.68rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      line-height: 1.6;
+      letter-spacing: 0.04em;
+    }
+
+    .mirror-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .input-label {
+      font-size: 0.63rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .input-field {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg);
+      transition: border-color 0.25s, background var(--transition);
+    }
+
+    .input-field:focus-within { border-color: var(--primary-green); }
+    [data-theme="dark"] .input-field:focus-within { border-color: #C8D5B9; }
+
+    .input-field input {
+      flex: 1;
+      padding: 12px 14px;
+      border: none;
+      background: transparent;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      transition: color var(--transition);
+    }
+
+    .input-unit {
+      padding: 0 12px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .mirror-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary-green);
+      color: var(--sand-beige);
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+
+    .mirror-submit:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .mirror-submit {
+      background: #C8D5B9;
+      color: #0D1A12;
+    }
+
+    /* Mirror Result */
+    .mirror-result {
+      display: none;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(26, 48, 33, 0.05), rgba(26, 48, 33, 0.02));
+      border-left: 3px solid var(--primary-green);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      transition: all var(--transition);
+    }
+
+    [data-theme="dark"] .mirror-result {
+      background: linear-gradient(135deg, rgba(200, 213, 185, 0.05), rgba(200, 213, 185, 0.02));
+      border-left-color: #C8D5B9;
+    }
+
+    .mirror-result.visible { display: block; }
+
+    .result-profile {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      transition: color var(--transition);
+    }
+
+    .result-desc {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .result-recommendation {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: var(--primary-green);
+      color: var(--sand-beige);
+      border-radius: 20px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    [data-theme="dark"] .result-recommendation { background: #C8D5B9; color: #0D1A12; }
+
+    /* Product Description */
+    .product-description {
+      font-size: 0.82rem;
+      line-height: 1.85;
+      color: var(--text-body);
+      margin-bottom: 24px;
+      transition: color var(--transition);
+    }
+
+    /* Details accordion */
+    .details-accordion {
+      border-top: 1px solid var(--border);
+      transition: border-color var(--transition);
+    }
+
+    .accordion-item {
+      border-bottom: 1px solid var(--border);
+      transition: border-color var(--transition);
+    }
+
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      transition: color var(--transition);
+      user-select: none;
+    }
+
+    .accordion-icon { font-size: 1.1rem; color: var(--text-muted); transition: transform 0.3s; }
+    .accordion-item.open .accordion-icon { transform: rotate(45deg); }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .accordion-item.open .accordion-body { max-height: 300px; }
+
+    .accordion-content {
+      padding-bottom: 18px;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+    }
+
+    .accordion-content ul { list-style: none; }
+    .accordion-content ul li::before { content: "— "; color: var(--accent); }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1024px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .product-layout { grid-template-columns: 1fr; }
+      .gallery-side {
+        position: relative;
+        top: 0;
+        height: auto;
+        padding: 28px 24px 0;
+      }
+      .main-image-wrapper { height: 62vw; max-height: 520px; }
+      .info-side { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 18px; }
+      .dark-toggle-label { display: none; }
+      .mirror-inputs { grid-template-columns: 1fr 1fr; }
+      .eco-strip { flex-wrap: wrap; gap: 12px; }
+      .main-image-wrapper { height: 75vw; }
+    }
+
+    /* ===================== ANIMATIONS ===================== */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .info-side > * {
+      animation: fadeSlideUp 0.6s both;
+    }
+
+    .info-side > *:nth-child(1) { animation-delay: 0.05s; }
+    .info-side > *:nth-child(2) { animation-delay: 0.12s; }
+    .info-side > *:nth-child(3) { animation-delay: 0.18s; }
+    .info-side > *:nth-child(4) { animation-delay: 0.24s; }
+    .info-side > *:nth-child(5) { animation-delay: 0.30s; }
+    .info-side > *:nth-child(6) { animation-delay: 0.36s; }
+
+    .gallery-side {
+      animation: fadeSlideUp 0.7s 0.1s both;
+    }
+
+    /* Grain overlay on page */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.35;
+    }
+
+    /* Pulse on mirror icon */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(26, 48, 33, 0.25); }
+      70% { box-shadow: 0 0 0 10px rgba(26, 48, 33, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(26, 48, 33, 0); }
+    }
+
+    .mirror-icon { animation: pulse-ring 2.5s infinite; }
+    [data-theme="dark"] .mirror-icon { animation: none; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav>
+    <a class="nav-logo" href="logo.png">
+      <!-- Leaf SVG mark -->
+      <svg class="nav-logo-mark" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 2C17 2 4 10 4 20C4 26.627 9.373 32 16 32C16.34 32 16.671 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.9"/>
+        <path d="M17 2C17 2 30 10 30 20C30 26.627 24.627 32 18 32C17.66 32 17.329 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.5"/>
+        <line x1="17" y1="31" x2="17" y2="14" stroke="#C8D5B9" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="17" y1="22" x2="22" y2="17" stroke="#C8D5B9" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+        <line x1="17" y1="26" x2="12" y2="21" stroke="#C8D5B9" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+      <span class="nav-logo-text">FORESTA</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#">Collections</a></li>
+      <li><a href="#">Sustainability</a></li>
+      <li><a href="#">Our Story</a></li>
+      <li><a href="#">Journal</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="dark-toggle" id="darkToggle" aria-label="Toggle dark mode">
+        <span class="dark-toggle-label" id="toggleLabel">Natural Light</span>
+        <div class="toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main>
+    <div class="product-layout">
+
+      <!-- ===== GALLERY SIDE ===== -->
+      <div class="gallery-side">
+        <!-- Main image -->
+        <div class="main-image-wrapper" id="mainImageWrapper"
+          ondragstart="return false" oncontextmenu="return false">
+          <img
+            id="mainImage"
+            src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80"
+            alt="Canopy Linen Jacket — Standard View"
+          />
+          <div class="shimmer-overlay" id="shimmerOverlay"></div>
+          <div class="image-badge" id="imageBadge"></div>
+        </div>
+
+        <!-- View toggle -->
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnStandard" onclick="switchView('standard')">Standard View</button>
+          <button class="view-btn" id="btnMirror" onclick="switchView('mirror')">My Body View</button>
+        </div>
+
+        <!-- Thumbnails -->
+        <div class="thumb-strip">
+          <div class="thumb active" onclick="changeMainImage(this, 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80', 'Front View')">
+            <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&q=70" alt="Front" />
+          </div>
+          <div class="thumb" onclick="changeMainImage(this, 'https://images.unsplash.com/photo-1594938298603-c8148b9a7691?w=900&q=80', 'Back View')">
+            <img src="https://images.unsplash.com/photo-1594938298603-c8148b9a7691?w=200&q=70" alt="Back" />
+          </div>
+          <div class="thumb" onclick="changeMainImage(this, 'https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=900&q=80', 'Detail')">
+            <img src="https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=200&q=70" alt="Detail" />
+          </div>
+          <div class="thumb" onclick="changeMainImage(this, 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=900&q=80', 'Lifestyle')">
+            <img src="https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=200&q=70" alt="Lifestyle" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== INFO SIDE ===== -->
+      <div class="info-side">
+        <div class="breadcrumb">Collection / <span>Autumn Canopy</span> / Outerwear</div>
+
+        <h1 class="product-title">The Canopy<br/>Linen Jacket</h1>
+        <p class="product-subtitle">Unstructured. Unhurried. Unapologetically natural.</p>
+
+        <div class="rating-row">
+          <span class="stars">★★★★★</span>
+          <span class="rating-count">4.9 · 238 reviews</span>
+        </div>
+
+        <div class="price-block">
+          <span class="price-current">$348</span>
+          <span class="price-original">$435</span>
+          <span class="price-badge">−20%</span>
+        </div>
+
+        <div class="eco-strip">
+          <div class="eco-item">
+            <span class="eco-icon">🌿</span>
+            <span class="eco-text">100% European<br/>Stone-Washed Linen</span>
+          </div>
+          <div class="eco-item">
+            <span class="eco-icon">♻️</span>
+            <span class="eco-text">Carbon-Neutral<br/>Production</span>
+          </div>
+          <div class="eco-item">
+            <span class="eco-icon">🌱</span>
+            <span class="eco-text">1 Tree Planted<br/>Per Purchase</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Size Selector -->
+        <div class="section-label">
+          Select Size
+          <span class="size-guide-link">Size Guide ↗</span>
+        </div>
+        <div class="size-grid">
+          <button class="size-btn unavailable" disabled>XS</button>
+          <button class="size-btn" onclick="selectSize(this)">S</button>
+          <button class="size-btn active" onclick="selectSize(this)">M</button>
+          <button class="size-btn" onclick="selectSize(this)">L</button>
+          <button class="size-btn" onclick="selectSize(this)">XL</button>
+          <button class="size-btn" onclick="selectSize(this)">XXL</button>
+        </div>
+
+        <!-- Virtual Mirror Trigger -->
+        <div class="mirror-trigger" id="mirrorTrigger" onclick="toggleMirror()">
+          <div class="mirror-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C9.24 2 7 4.24 7 7C7 9.76 9.24 12 12 12C14.76 12 17 9.76 17 7C17 4.24 14.76 2 12 2Z" fill="#F5F5DC" opacity="0.9"/>
+              <path d="M12 14C7.58 14 4 15.79 4 18V20H20V18C20 15.79 16.42 14 12 14Z" fill="#F5F5DC" opacity="0.6"/>
+              <circle cx="19" cy="5" r="3" fill="#A0522D" opacity="0.9"/>
+              <path d="M19 3.5V5M19 5V6.5M19 5H17.5M19 5H20.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="mirror-trigger-text">
+            <h4>Find My Perfect Fit — Virtual Mirror</h4>
+            <p>Enter your measurements to see how this fits your body type</p>
+          </div>
+          <span class="mirror-chevron">▾</span>
+        </div>
+
+        <!-- Mirror Panel -->
+        <div class="mirror-panel" id="mirrorPanel">
+          <div class="mirror-panel-inner">
+            <h3 class="mirror-heading">The Virtual Mirror</h3>
+            <p class="mirror-subheading">
+              Our AI profiles your unique body shape and shows you how the Canopy Jacket drapes on a model that matches your physique.
+            </p>
+
+            <div class="mirror-inputs">
+              <div class="input-group">
+                <label class="input-label">Height</label>
+                <div class="input-field">
+                  <input type="number" id="heightInput" placeholder="170" min="120" max="230" />
+                  <span class="input-unit">cm</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Weight</label>
+                <div class="input-field">
+                  <input type="number" id="weightInput" placeholder="65" min="30" max="200" />
+                  <span class="input-unit">kg</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="mirror-submit" onclick="generateMirrorView()">Generate My View ✦</button>
+
+            <div class="mirror-result" id="mirrorResult">
+              <div class="result-profile" id="resultProfile">—</div>
+              <div class="result-desc" id="resultDesc">—</div>
+              <span class="result-recommendation" id="resultRec">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="cta-group">
+          <button class="btn-primary">Add to Cart — $348</button>
+          <button class="btn-secondary">♡ Save to Wishlist</button>
+        </div>
+
+        <!-- Description -->
+        <p class="product-description">
+          Hand-finished in Portugal from a 400gsm Belgian linen blend, the Canopy Jacket breathes with the season. Its unlined drop-shoulder silhouette moves like a second skin — equally at home in a forest clearing or a city morning. Stone-washed to achieve a lived-in softness that only deepens with time.
+        </p>
+
+        <!-- Accordion Details -->
+        <div class="details-accordion">
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              Materials & Care
+              <span class="accordion-icon">+</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                <ul>
+                  <li>80% European stone-washed linen, 20% organic cotton</li>
+                  <li>OEKO-TEX® Standard 100 certified</li>
+                  <li>Hand wash cold or gentle machine wash</li>
+                  <li>Dry flat; iron on low while slightly damp</li>
+                  <li>Do not tumble dry; do not bleach</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              Fit & Sizing
+              <span class="accordion-icon">+</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                <ul>
+                  <li>Oversized, drop-shoulder silhouette</li>
+                  <li>Model is 181cm and wears size M</li>
+                  <li>Available in sizes S – XXL</li>
+                  <li>Chest: S(96) M(102) L(108) XL(116) XXL(124) cm</li>
+                  <li>True-to-size; we suggest sizing down for a relaxed fit</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              Sustainability
+              <span class="accordion-icon">+</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                <ul>
+                  <li>Carbon-neutral production via verified offsets</li>
+                  <li>Natural linen requires 13× less water than cotton</li>
+                  <li>Packaging is 100% compostable</li>
+                  <li>One tree planted for every order, via One Tree Planted</li>
+                  <li>Lifetime repair service on all Foresta garments</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              Delivery & Returns
+              <span class="accordion-icon">+</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-content">
+                <ul>
+                  <li>Free carbon-offset shipping on orders over $200</li>
+                  <li>Delivered in 3–5 business days</li>
+                  <li>Free 30-day returns — no questions asked</li>
+                  <li>Exchange for a different size at no extra cost</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== JAVASCRIPT ===================== -->
+  <script>
+    // ─── Dark Mode ───────────────────────────────────────────
+    const html = document.documentElement;
+    const darkToggle = document.getElementById('darkToggle');
+    const toggleLabel = document.getElementById('toggleLabel');
+    let darkMode = false;
+
+    darkToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      html.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+      toggleLabel.textContent = darkMode ? 'Forest Night' : 'Natural Light';
+    });
+
+    // ─── Size Selection ───────────────────────────────────────
+    function selectSize(btn) {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ─── Main Image Change (gallery thumbnails) ───────────────
+    let currentView = 'standard';
+
+    function changeMainImage(thumbEl, src, label) {
+      if (currentView !== 'standard') return;
+      document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+      thumbEl.classList.add('active');
+      swapImage(src, label);
+    }
+
+    function swapImage(src, badgeText, showBadge = false) {
+      const img = document.getElementById('mainImage');
+      const shimmer = document.getElementById('shimmerOverlay');
+      const badge = document.getElementById('imageBadge');
+
+      img.classList.add('fade-out');
+      shimmer.classList.add('active');
+      badge.classList.remove('visible');
+
+      setTimeout(() => {
+        img.src = src;
+        img.onload = () => {
+          img.classList.remove('fade-out');
+          shimmer.classList.remove('active');
+          if (showBadge && badgeText) {
+            badge.textContent = badgeText;
+            badge.classList.add('visible');
+          }
+        };
+        // fallback in case onload doesn't fire (cached)
+        setTimeout(() => {
+          img.classList.remove('fade-out');
+          shimmer.classList.remove('active');
+          if (showBadge && badgeText) {
+            badge.textContent = badgeText;
+            badge.classList.add('visible');
+          }
+        }, 700);
+      }, 320);
+    }
+
+    // ─── View Toggle (Standard / My Body) ────────────────────
+    function switchView(view) {
+      currentView = view;
+      const btnStd = document.getElementById('btnStandard');
+      const btnMir = document.getElementById('btnMirror');
+      const badge = document.getElementById('imageBadge');
+
+      if (view === 'standard') {
+        btnStd.classList.add('active');
+        btnMir.classList.remove('active');
+        badge.classList.remove('visible');
+        swapImage(
+          'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80',
+          '',
+          false
+        );
+      } else {
+        btnStd.classList.remove('active');
+        btnMir.classList.add('active');
+        // If mirror result already computed, show it again
+        const result = document.getElementById('mirrorResult');
+        if (result.classList.contains('visible')) {
+          const rec = document.getElementById('resultRec').textContent;
+          triggerMirrorImage(rec);
+        } else {
+          // prompt user to generate
+          swapImage(
+            'https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=900&q=80',
+            '⟳ Generate your view below',
+            true
+          );
+        }
+      }
+    }
+
+    // ─── Virtual Mirror Toggle ────────────────────────────────
+    function toggleMirror() {
+      const panel = document.getElementById('mirrorPanel');
+      const trigger = document.getElementById('mirrorTrigger');
+      const isOpen = panel.classList.contains('open');
+      panel.classList.toggle('open', !isOpen);
+      trigger.classList.toggle('open', !isOpen);
+    }
+
+    // ─── Body Profile Calculation ─────────────────────────────
+    const BODY_PROFILES = {
+      slim: {
+        label: 'Slim Profile',
+        desc: 'Your lean frame means the Canopy Jacket will drape gracefully with room to layer underneath. The drop-shoulder design creates a relaxed, editorial silhouette.',
+        rec: 'Recommended Size: S',
+        image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=900&q=80',
+        badge: '✦ Slim Profile — Your View'
+      },
+      athletic: {
+        label: 'Athletic Profile',
+        desc: 'Your well-proportioned, muscular frame suits the structured looseness of this jacket perfectly. The linen will accommodate your shoulders while staying relaxed through the body.',
+        rec: 'Recommended Size: M',
+        image: 'https://images.unsplash.com/photo-1594938298603-c8148b9a7691?w=900&q=80',
+        badge: '✦ Athletic Profile — Your View'
+      },
+      average: {
+        label: 'Balanced Profile',
+        desc: 'The Canopy Jacket was designed with your proportions at its heart. The oversized cut drapes evenly and the natural linen softens beautifully at your silhouette.',
+        rec: 'Recommended Size: L',
+        image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80',
+        badge: '✦ Balanced Profile — Your View'
+      },
+      plus: {
+        label: 'Generous Profile',
+        desc: 'The unlined, relaxed structure of this jacket creates a flowing, flattering drape. The natural linen breathes well and moves freely to complement your form beautifully.',
+        rec: 'Recommended Size: XL–XXL',
+        image: 'https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=900&q=80',
+        badge: '✦ Generous Profile — Your View'
+      }
+    };
+
+    function classifyBody(bmi) {
+      if (bmi < 18.5) return 'slim';
+      if (bmi < 23) return 'athletic';
+      if (bmi < 28) return 'average';
+      return 'plus';
+    }
+
+    function triggerMirrorImage(recText) {
+      // match rec to profile
+      let profile = 'average';
+      if (recText.includes('S')) profile = 'slim';
+      else if (recText.includes('M')) profile = 'athletic';
+      else if (recText.includes('XL')) profile = 'plus';
+      const p = BODY_PROFILES[profile];
+      swapImage(p.image, p.badge, true);
+    }
+
+    function generateMirrorView() {
+      const height = parseFloat(document.getElementById('heightInput').value);
+      const weight = parseFloat(document.getElementById('weightInput').value);
+
+      if (!height || !weight || height < 100 || height > 240 || weight < 30 || weight > 250) {
+        alert('Please enter a valid height (100–240 cm) and weight (30–250 kg).');
+        return;
+      }
+
+      const heightM = height / 100;
+      const bmi = weight / (heightM * heightM);
+      const profileKey = classifyBody(bmi);
+      const profile = BODY_PROFILES[profileKey];
+
+      // Show loading shimmer
+      const shimmer = document.getElementById('shimmerOverlay');
+      const img = document.getElementById('mainImage');
+      const badge = document.getElementById('imageBadge');
+      img.classList.add('fade-out');
+      shimmer.classList.add('active');
+      badge.classList.remove('visible');
+
+      // Switch to "My Body View"
+      document.getElementById('btnStandard').classList.remove('active');
+      document.getElementById('btnMirror').classList.add('active');
+      currentView = 'mirror';
+
+      // Simulate AI processing delay
+      setTimeout(() => {
+        img.src = profile.image;
+        img.onload = () => {
+          img.classList.remove('fade-out');
+          shimmer.classList.remove('active');
+          badge.textContent = profile.badge;
+          badge.classList.add('visible');
+        };
+        setTimeout(() => {
+          img.classList.remove('fade-out');
+          shimmer.classList.remove('active');
+          badge.textContent = profile.badge;
+          badge.classList.add('visible');
+        }, 700);
+
+        // Populate result card
+        const result = document.getElementById('mirrorResult');
+        document.getElementById('resultProfile').textContent = `${profile.label} · BMI ${bmi.toFixed(1)}`;
+        document.getElementById('resultDesc').textContent = profile.desc;
+        document.getElementById('resultRec').textContent = profile.rec;
+        result.classList.add('visible');
+
+        // Auto-select recommended size
+        const recText = profile.rec;
+        if (recText.includes('S') && !recText.includes('XS')) selectSizeByLabel('S');
+        else if (recText.includes('M') && !recText.includes('XL')) selectSizeByLabel('M');
+        else if (recText.includes('XL–XXL')) selectSizeByLabel('XL');
+        else if (recText.includes('L')) selectSizeByLabel('L');
+
+      }, 1600);
+    }
+
+    function selectSizeByLabel(label) {
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.trim() === label && !btn.classList.contains('unavailable')) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // ─── Accordion ────────────────────────────────────────────
+    function toggleAccordion(header) {
+      const item = header.parentElement;
+      const isOpen = item.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    }
+
+    // ─── Prevent drag-to-save on images ──────────────────────
+    document.querySelectorAll('img').forEach(img => {
+      img.addEventListener('dragstart', e => e.preventDefault());
+      img.addEventListener('contextmenu', e => e.preventDefault());
+    });
+  </script>
+</body>
+</html>

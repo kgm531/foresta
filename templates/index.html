@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Foresta — Wear the Forest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Montserrat:wght@200;300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/rtl.css"/>
+
+  <style>
+    /* ─── VARIABLES ─── */
+    :root {
+      --g: #1A3021;
+      --g2: #0D1A12;
+      --sand: #F5F5DC;
+      --wood: #A0522D;
+      --sage: #C8D5B9;
+      --moss: #E8EDE4;
+      --off: #FAFAF5;
+      --muted: rgba(47,79,79,0.5);
+      --border: rgba(26,48,33,0.1);
+      --T: 0.55s cubic-bezier(0.4,0,0.2,1);
+      --r: 8px;
+
+      /* light-mode semantic tokens */
+      --bg-body: #FAFAF5;
+      --bg-card: #FFFFFF;
+      --bg-subtle: #E8EDE4;
+      --text-primary: #1A3021;
+      --text-body: rgba(47,79,79,0.85);
+      --text-muted: rgba(47,79,79,0.5);
+      --border-col: rgba(26,48,33,0.1);
+      --shadow: 0 4px 32px rgba(26,48,33,0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-body: #0A1209;
+      --bg-card: #111D14;
+      --bg-subtle: #172419;
+      --text-primary: #DDE8D5;
+      --text-body: rgba(200,213,185,0.8);
+      --text-muted: rgba(200,213,185,0.4);
+      --border-col: rgba(200,213,185,0.09);
+      --shadow: 0 4px 32px rgba(0,0,0,0.35);
+      --off: #0A1209;
+      --moss: #172419;
+      --border: rgba(200,213,185,0.09);
+      --muted: rgba(200,213,185,0.4);
+    }
+
+    /* ─── RESET ─── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;font-size:16px}
+    body{
+      font-family:'Montserrat',sans-serif;
+      background:var(--bg-body);
+      color:var(--text-body);
+      overflow-x:hidden;
+      cursor:none;
+      transition:background 0.45s, color 0.45s;
+    }
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button{cursor:none;font-family:'Montserrat',sans-serif}
+    ul{list-style:none}
+
+    /* ─── CUSTOM CURSOR ─── */
+    #cursor{
+      position:fixed;width:12px;height:12px;
+      background:var(--g);border-radius:50%;
+      pointer-events:none;z-index:9999;
+      transform:translate(-50%,-50%);
+      transition:transform 0.15s, width 0.3s, height 0.3s, background 0.3s, opacity 0.3s;
+      mix-blend-mode:multiply;
+    }
+    #cursor-ring{
+      position:fixed;width:40px;height:40px;
+      border:1.5px solid var(--g);border-radius:50%;
+      pointer-events:none;z-index:9998;
+      transform:translate(-50%,-50%);
+      transition:transform 0.4s cubic-bezier(0.2,1,0.2,1), width 0.4s, height 0.4s, opacity 0.3s;
+      opacity:0.5;
+    }
+    body:has(a:hover) #cursor,
+    body:has(button:hover) #cursor{width:6px;height:6px;background:var(--wood)}
+    body:has(a:hover) #cursor-ring,
+    body:has(button:hover) #cursor-ring{width:56px;height:56px;opacity:0.25}
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal{opacity:0;transform:translateY(40px);transition:opacity 0.8s var(--T),transform 0.8s var(--T)}
+    .reveal.in{opacity:1;transform:translateY(0)}
+    .reveal-left{opacity:0;transform:translateX(-50px);transition:opacity 0.9s var(--T),transform 0.9s var(--T)}
+    .reveal-left.in{opacity:1;transform:translateX(0)}
+    .reveal-right{opacity:0;transform:translateX(50px);transition:opacity 0.9s var(--T),transform 0.9s var(--T)}
+    .reveal-right.in{opacity:1;transform:translateX(0)}
+    .reveal-scale{opacity:0;transform:scale(0.92);transition:opacity 0.9s var(--T),transform 0.9s var(--T)}
+    .reveal-scale.in{opacity:1;transform:scale(1)}
+    .delay-1{transition-delay:0.1s}
+    .delay-2{transition-delay:0.2s}
+    .delay-3{transition-delay:0.3s}
+    .delay-4{transition-delay:0.45s}
+    .delay-5{transition-delay:0.6s}
+
+    /* ─── NAVBAR ─── */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:200;
+      height:72px;padding:0 52px;
+      display:flex;align-items:center;justify-content:space-between;
+      transition:background 0.5s, backdrop-filter 0.5s, box-shadow 0.5s;
+    }
+    nav.scrolled{
+      background:rgba(13,26,18,0.88);
+      backdrop-filter:blur(16px);
+      box-shadow:0 2px 40px rgba(0,0,0,0.3);
+    }
+    .nav-logo{display:flex;align-items:center;gap:10px}
+    .nav-logo svg{width:32px;height:32px}
+    .logo-text{
+      font-family:'Playfair Display',serif;
+      font-size:1.5rem;font-weight:700;
+      letter-spacing:0.14em;color:var(--sand);
+    }
+    .nav-center{display:flex;gap:40px}
+    .nav-center a{
+      font-size:0.68rem;font-weight:500;letter-spacing:0.2em;
+      text-transform:uppercase;color:rgba(245,245,220,0.65);
+      transition:color 0.25s;position:relative;
+    }
+    .nav-center a::after{
+      content:'';position:absolute;bottom:-4px;left:0;right:0;
+      height:1px;background:var(--sage);
+      transform:scaleX(0);transform-origin:right;
+      transition:transform 0.35s;
+    }
+    .nav-center a:hover{color:var(--sand)}
+    .nav-center a:hover::after{transform:scaleX(1);transform-origin:left}
+    .nav-right{display:flex;align-items:center;gap:24px}
+    .nav-icon{
+      background:none;border:none;padding:6px;
+      color:rgba(245,245,220,0.7);font-size:1rem;
+      transition:color 0.25s;
+    }
+    .nav-icon:hover{color:var(--sand)}
+    .nav-cta{
+      padding:9px 22px;border-radius:30px;
+      border:1.5px solid rgba(245,245,220,0.3);
+      background:transparent;color:var(--sand);
+      font-size:0.65rem;font-weight:600;letter-spacing:0.18em;
+      text-transform:uppercase;
+      transition:all 0.3s;
+    }
+    .nav-cta:hover{background:var(--sand);color:var(--g)}
+
+    /* ─── DARK MODE TOGGLE ─── */
+    .theme-toggle{
+      display:flex;align-items:center;gap:9px;
+      background:rgba(245,245,220,0.07);
+      border:1px solid rgba(245,245,220,0.18);
+      border-radius:30px;padding:7px 14px 7px 10px;
+      cursor:none;transition:background 0.3s,border-color 0.3s;
+    }
+    .theme-toggle:hover{background:rgba(245,245,220,0.13);border-color:rgba(245,245,220,0.32)}
+    .theme-toggle-icon{font-size:0.85rem;line-height:1;transition:transform 0.5s}
+    [data-theme="dark"] .theme-toggle-icon{transform:rotate(360deg)}
+    .theme-toggle-label{
+      font-size:0.62rem;font-weight:700;letter-spacing:0.18em;
+      text-transform:uppercase;color:rgba(245,245,220,0.65);
+      transition:color 0.3s;
+    }
+    .theme-toggle:hover .theme-toggle-label{color:var(--sand)}
+    .toggle-pip{
+      width:30px;height:16px;border-radius:8px;
+      background:rgba(245,245,220,0.15);
+      position:relative;transition:background 0.35s;
+      flex-shrink:0;
+    }
+    [data-theme="dark"] .toggle-pip{background:var(--sage)}
+    .toggle-pip::after{
+      content:'';position:absolute;top:2px;left:2px;
+      width:12px;height:12px;border-radius:50%;
+      background:rgba(245,245,220,0.9);
+      transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    [data-theme="dark"] .toggle-pip::after{transform:translateX(14px);background:var(--g)}
+
+    /* ─── NAV LOGO IMG ─── */
+    .nav-logo-img{height:38px;width:auto;object-fit:contain;display:block}
+    .nav-logo svg{display:none} /* hide SVG fallback when img present */
+
+    /* ─── HERO ─── */
+    #hero{
+      position:relative;height:100vh;min-height:700px;
+      display:flex;flex-direction:column;
+      justify-content:flex-end;overflow:hidden;
+    }
+    .hero-bg{
+      position:absolute;inset:0;z-index:0;
+    }
+    .hero-bg img{
+      width:100%;height:100%;object-fit:cover;
+      transform:scale(1.08);
+      animation:heroZoom 14s ease-out forwards;
+    }
+    @keyframes heroZoom{
+      0%{transform:scale(1.08)}
+      100%{transform:scale(1)}
+    }
+    .hero-overlay{
+      position:absolute;inset:0;z-index:1;
+      background:linear-gradient(
+        175deg,
+        rgba(13,26,18,0.15) 0%,
+        rgba(13,26,18,0.1) 40%,
+        rgba(13,26,18,0.72) 100%
+      );
+    }
+    .hero-content{
+      position:relative;z-index:2;
+      padding:0 52px 72px;
+      max-width:900px;
+    }
+    .hero-tag{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:0.62rem;font-weight:700;letter-spacing:0.3em;
+      text-transform:uppercase;color:var(--sage);
+      margin-bottom:20px;
+      animation:fadeUp 1s 0.3s both;
+    }
+    .hero-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+    .hero-title{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(3.5rem,7vw,7rem);
+      font-weight:900;line-height:0.95;
+      color:var(--sand);
+      margin-bottom:8px;
+      animation:fadeUp 1s 0.5s both;
+    }
+    .hero-title em{font-style:italic;color:var(--sage)}
+    .hero-subtitle{
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(1.1rem,2vw,1.6rem);
+      font-style:italic;font-weight:300;
+      color:rgba(245,245,220,0.7);
+      margin-bottom:36px;
+      max-width:560px;line-height:1.5;
+      animation:fadeUp 1s 0.7s both;
+    }
+    .hero-actions{
+      display:flex;align-items:center;gap:20px;
+      animation:fadeUp 1s 0.9s both;
+    }
+    .btn-hero-primary{
+      padding:17px 40px;border-radius:50px;
+      background:var(--sand);color:var(--g);
+      border:none;font-size:0.72rem;font-weight:700;
+      letter-spacing:0.2em;text-transform:uppercase;
+      transition:all 0.35s;
+    }
+    .btn-hero-primary:hover{background:var(--sage);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+    .btn-hero-ghost{
+      display:flex;align-items:center;gap:10px;
+      color:var(--sand);font-size:0.7rem;font-weight:500;
+      letter-spacing:0.12em;text-transform:uppercase;
+      background:none;border:none;
+      transition:gap 0.3s,opacity 0.3s;
+    }
+    .btn-hero-ghost:hover{gap:16px;opacity:0.8}
+    .btn-arrow{
+      width:40px;height:40px;border-radius:50%;
+      border:1px solid rgba(245,245,220,0.4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.8rem;
+    }
+    .hero-scroll{
+      position:absolute;bottom:36px;right:52px;z-index:2;
+      display:flex;flex-direction:column;align-items:center;gap:8px;
+      animation:fadeUp 1.2s 1.2s both;
+    }
+    .hero-scroll span{
+      font-size:0.58rem;letter-spacing:0.3em;text-transform:uppercase;
+      color:rgba(245,245,220,0.5);writing-mode:vertical-rl;
+    }
+    .scroll-line{
+      width:1px;height:60px;background:rgba(245,245,220,0.2);
+      position:relative;overflow:hidden;
+    }
+    .scroll-line::after{
+      content:'';position:absolute;top:-100%;left:0;
+      width:1px;height:100%;background:var(--sage);
+      animation:scrollDown 2s 1.5s infinite;
+    }
+    @keyframes scrollDown{0%{top:-100%}100%{top:200%}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ─── MARQUEE STRIP ─── */
+    .marquee-strip{
+      background:var(--g);padding:16px 0;overflow:hidden;
+      border-top:1px solid rgba(200,213,185,0.1);
+      border-bottom:1px solid rgba(200,213,185,0.1);
+    }
+    .marquee-inner{
+      display:flex;gap:0;white-space:nowrap;
+      animation:marquee 22s linear infinite;
+    }
+    .marquee-inner:hover{animation-play-state:paused}
+    .marquee-item{
+      display:inline-flex;align-items:center;gap:18px;
+      padding:0 28px;
+      font-size:0.62rem;font-weight:700;letter-spacing:0.25em;
+      text-transform:uppercase;color:rgba(200,213,185,0.6);
+      flex-shrink:0;
+    }
+    .marquee-sep{width:5px;height:5px;border-radius:50%;background:var(--sage);opacity:0.4}
+    @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+    /* ─── PHILOSOPHY SECTION ─── */
+    #philosophy{
+      padding:140px 52px;
+      display:grid;grid-template-columns:1fr 1fr;gap:80px;
+      align-items:center;max-width:1400px;margin:0 auto;
+    }
+    .phil-tag{
+      font-size:0.6rem;font-weight:700;letter-spacing:0.32em;
+      text-transform:uppercase;color:var(--wood);
+      display:flex;align-items:center;gap:10px;
+      margin-bottom:22px;
+    }
+    .phil-tag::before{content:'';width:32px;height:1px;background:var(--wood)}
+    .phil-title{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(2.2rem,4vw,3.6rem);
+      font-weight:700;line-height:1.12;
+      color:var(--g);margin-bottom:28px;
+    }
+    .phil-title em{font-style:italic;color:var(--wood)}
+    .phil-body{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.2rem;font-weight:300;
+      line-height:1.9;color:rgba(47,79,79,0.75);
+      margin-bottom:36px;
+    }
+    .phil-link{
+      display:inline-flex;align-items:center;gap:12px;
+      font-size:0.68rem;font-weight:700;letter-spacing:0.2em;
+      text-transform:uppercase;color:var(--g);
+      border-bottom:1px solid var(--g);padding-bottom:4px;
+      transition:gap 0.3s,color 0.3s,border-color 0.3s;
+    }
+    .phil-link:hover{gap:18px;color:var(--wood);border-color:var(--wood)}
+    .phil-image-grid{
+      display:grid;grid-template-columns:1fr 1fr;
+      grid-template-rows:200px 200px;gap:14px;
+    }
+    .phil-img{border-radius:var(--r);overflow:hidden;position:relative}
+    .phil-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.8s var(--T)}
+    .phil-img:hover img{transform:scale(1.06)}
+    .phil-img-big{grid-row:span 2}
+    .phil-img-label{
+      position:absolute;bottom:14px;left:14px;
+      font-size:0.6rem;font-weight:700;letter-spacing:0.18em;
+      text-transform:uppercase;color:var(--sand);
+      background:rgba(26,48,33,0.7);backdrop-filter:blur(6px);
+      padding:5px 12px;border-radius:20px;
+    }
+
+    /* ─── STATS BAR ─── */
+    .stats-bar{
+      background:var(--g);padding:60px 52px;
+      display:flex;justify-content:center;gap:0;
+    }
+    .stat-item{
+      flex:1;max-width:220px;text-align:center;
+      padding:0 32px;position:relative;
+    }
+    .stat-item+.stat-item::before{
+      content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+      height:50px;width:1px;background:rgba(200,213,185,0.15);
+    }
+    .stat-num{
+      font-family:'Playfair Display',serif;
+      font-size:2.8rem;font-weight:700;
+      color:var(--sage);line-height:1;margin-bottom:8px;
+    }
+    .stat-label{
+      font-size:0.62rem;font-weight:600;letter-spacing:0.2em;
+      text-transform:uppercase;color:rgba(200,213,185,0.45);
+    }
+
+    /* ─── COLLECTIONS ─── */
+    #collections{padding:120px 52px;max-width:1400px;margin:0 auto}
+    .section-header{
+      display:flex;justify-content:space-between;align-items:flex-end;
+      margin-bottom:60px;
+    }
+    .section-tag{
+      font-size:0.6rem;font-weight:700;letter-spacing:0.32em;
+      text-transform:uppercase;color:var(--wood);
+      display:flex;align-items:center;gap:10px;
+      margin-bottom:14px;
+    }
+    .section-tag::before{content:'';width:32px;height:1px;background:var(--wood)}
+    .section-title{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(2rem,3.5vw,3rem);
+      font-weight:700;line-height:1.1;color:var(--g);
+    }
+    .section-link{
+      font-size:0.67rem;font-weight:700;letter-spacing:0.2em;
+      text-transform:uppercase;color:var(--g);
+      display:flex;align-items:center;gap:8px;
+      border-bottom:1px solid var(--g);padding-bottom:3px;
+      transition:gap 0.3s,color 0.3s;white-space:nowrap;
+      align-self:flex-end;margin-bottom:4px;
+    }
+    .section-link:hover{gap:14px;color:var(--wood);border-color:var(--wood)}
+    .collections-grid{
+      display:grid;grid-template-columns:1.4fr 1fr 1fr;
+      grid-template-rows:auto;gap:20px;
+    }
+    .col-card{
+      border-radius:12px;overflow:hidden;
+      position:relative;background:var(--moss);
+      cursor:none;
+    }
+    .col-card-tall{grid-row:span 2}
+    .col-card-img{
+      width:100%;height:100%;min-height:280px;
+      object-fit:cover;
+      transition:transform 1s var(--T);
+    }
+    .col-card-tall .col-card-img{min-height:580px}
+    .col-card:hover .col-card-img{transform:scale(1.06)}
+    .col-card-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(to top, rgba(13,26,18,0.75) 0%, transparent 55%);
+      transition:background 0.5s;
+    }
+    .col-card:hover .col-card-overlay{
+      background:linear-gradient(to top, rgba(13,26,18,0.85) 0%, transparent 45%);
+    }
+    .col-card-info{
+      position:absolute;bottom:0;left:0;right:0;
+      padding:24px;
+    }
+    .col-season{
+      font-size:0.58rem;font-weight:700;letter-spacing:0.26em;
+      text-transform:uppercase;color:var(--sage);
+      margin-bottom:6px;opacity:0.8;
+    }
+    .col-name{
+      font-family:'Playfair Display',serif;
+      font-size:1.4rem;font-weight:600;color:var(--sand);
+      margin-bottom:4px;line-height:1.2;
+    }
+    .col-card-tall .col-name{font-size:1.9rem}
+    .col-count{
+      font-size:0.65rem;font-weight:500;letter-spacing:0.1em;
+      color:rgba(245,245,220,0.55);
+    }
+    .col-btn{
+      display:inline-flex;align-items:center;gap:8px;
+      margin-top:14px;padding:9px 20px;border-radius:30px;
+      border:1px solid rgba(245,245,220,0.35);
+      background:transparent;color:var(--sand);
+      font-size:0.62rem;font-weight:700;letter-spacing:0.15em;
+      text-transform:uppercase;
+      transform:translateY(8px);opacity:0;
+      transition:all 0.4s var(--T);
+    }
+    .col-card:hover .col-btn{transform:translateY(0);opacity:1}
+    .col-btn:hover{background:var(--sand);color:var(--g)}
+
+    /* ─── FEATURED PRODUCT ─── */
+    #featured{
+      padding:100px 52px;
+      background:var(--g);
+      display:grid;grid-template-columns:1fr 1fr;
+      gap:80px;align-items:center;
+    }
+    .featured-inner{max-width:1400px;margin:0 auto;display:contents}
+    .featured-image{
+      position:relative;border-radius:16px;overflow:hidden;
+    }
+    .featured-image img{width:100%;aspect-ratio:3/4;object-fit:cover}
+    .featured-badge{
+      position:absolute;top:24px;left:24px;
+      background:var(--wood);color:white;
+      font-size:0.62rem;font-weight:700;letter-spacing:0.16em;
+      text-transform:uppercase;padding:7px 16px;border-radius:30px;
+    }
+    .featured-price-float{
+      position:absolute;bottom:24px;right:24px;
+      background:rgba(13,26,18,0.85);backdrop-filter:blur(10px);
+      padding:14px 20px;border-radius:12px;text-align:right;
+    }
+    .float-was{
+      font-size:0.65rem;color:rgba(200,213,185,0.5);
+      text-decoration:line-through;margin-bottom:2px;
+    }
+    .float-price{
+      font-family:'Playfair Display',serif;
+      font-size:1.5rem;font-weight:600;color:var(--sage);
+    }
+    .featured-content{padding:20px 0}
+    .featured-tag{
+      font-size:0.6rem;font-weight:700;letter-spacing:0.32em;
+      text-transform:uppercase;color:var(--sage);
+      display:flex;align-items:center;gap:10px;
+      margin-bottom:22px;opacity:0.7;
+    }
+    .featured-tag::before{content:'';width:32px;height:1px;background:var(--sage)}
+    .featured-title{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(2rem,3.5vw,3.2rem);
+      font-weight:700;line-height:1.1;
+      color:var(--sand);margin-bottom:14px;
+    }
+    .featured-title em{font-style:italic;color:var(--sage)}
+    .featured-desc{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.15rem;font-weight:300;line-height:1.9;
+      color:rgba(200,213,185,0.65);margin-bottom:36px;
+    }
+    .featured-attrs{
+      display:flex;gap:24px;margin-bottom:40px;flex-wrap:wrap;
+    }
+    .feat-attr{
+      display:flex;align-items:center;gap:8px;
+    }
+    .feat-attr-icon{font-size:1rem}
+    .feat-attr-text{
+      font-size:0.67rem;font-weight:600;letter-spacing:0.1em;
+      text-transform:uppercase;color:rgba(200,213,185,0.5);
+    }
+    .featured-actions{display:flex;gap:14px;flex-wrap:wrap}
+    .btn-featured-primary{
+      padding:16px 36px;border-radius:50px;
+      background:var(--sand);color:var(--g);border:none;
+      font-size:0.7rem;font-weight:700;letter-spacing:0.2em;
+      text-transform:uppercase;transition:all 0.35s;
+    }
+    .btn-featured-primary:hover{background:var(--sage);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,0.4)}
+    .btn-featured-ghost{
+      padding:16px 28px;border-radius:50px;
+      background:transparent;
+      border:1.5px solid rgba(200,213,185,0.2);
+      color:var(--sage);
+      font-size:0.7rem;font-weight:600;letter-spacing:0.16em;
+      text-transform:uppercase;transition:all 0.3s;
+    }
+    .btn-featured-ghost:hover{border-color:rgba(200,213,185,0.5);background:rgba(200,213,185,0.06)}
+
+    /* ─── HORIZONTAL SCROLL ─── */
+    #lookbook{padding:120px 0 120px 52px;overflow:hidden}
+    .lookbook-header{padding-right:52px;margin-bottom:52px}
+    .lookbook-track-wrap{overflow-x:auto;scrollbar-width:none}
+    .lookbook-track-wrap::-webkit-scrollbar{display:none}
+    .lookbook-track{
+      display:flex;gap:20px;width:max-content;
+      padding-right:52px;
+    }
+    .look-card{
+      width:280px;flex-shrink:0;border-radius:12px;
+      overflow:hidden;position:relative;background:var(--moss);
+    }
+    .look-card img{width:100%;height:380px;object-fit:cover;transition:transform 0.8s var(--T)}
+    .look-card:hover img{transform:scale(1.05)}
+    .look-card-info{
+      padding:18px 20px;background:var(--off);
+    }
+    .look-card-num{
+      font-size:0.6rem;font-weight:700;letter-spacing:0.3em;
+      color:var(--muted);text-transform:uppercase;margin-bottom:5px;
+    }
+    .look-card-name{
+      font-family:'Playfair Display',serif;
+      font-size:1rem;font-weight:600;color:var(--g);margin-bottom:2px;
+    }
+    .look-card-price{font-size:0.8rem;font-weight:500;color:var(--wood)}
+    .lookbook-scroll-hint{
+      display:flex;align-items:center;gap:10px;
+      font-size:0.62rem;font-weight:600;letter-spacing:0.2em;
+      text-transform:uppercase;color:var(--muted);
+      margin-top:30px;padding-right:52px;justify-content:flex-end;
+    }
+    .scroll-arrow{font-size:1.2rem;animation:scrollRight 1.5s infinite ease-in-out}
+    @keyframes scrollRight{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+
+    /* ─── SUSTAINABILITY ─── */
+    #sustainability{
+      padding:130px 52px;
+      background:linear-gradient(135deg, var(--moss) 0%, var(--off) 100%);
+    }
+    .sust-inner{max-width:1400px;margin:0 auto}
+    .sust-header{text-align:center;max-width:640px;margin:0 auto 80px}
+    .sust-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:24px;
+    }
+    .sust-card{
+      padding:36px;border-radius:16px;
+      background:white;border:1px solid var(--border);
+      transition:transform 0.4s var(--T), box-shadow 0.4s var(--T);
+      position:relative;overflow:hidden;
+    }
+    .sust-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg, var(--g), var(--sage));
+    }
+    .sust-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(26,48,33,0.1)}
+    .sust-icon{
+      width:52px;height:52px;border-radius:14px;
+      background:var(--moss);display:flex;align-items:center;
+      justify-content:center;font-size:1.5rem;
+      margin-bottom:20px;
+    }
+    .sust-card-title{
+      font-family:'Playfair Display',serif;
+      font-size:1.15rem;font-weight:600;color:var(--g);
+      margin-bottom:10px;
+    }
+    .sust-card-body{
+      font-size:0.82rem;line-height:1.8;
+      color:rgba(47,79,79,0.65);
+    }
+    .sust-num{
+      font-family:'Playfair Display',serif;
+      font-size:2rem;font-weight:700;color:var(--wood);
+      margin-top:18px;
+    }
+
+    /* ─── TESTIMONIALS ─── */
+    #testimonials{
+      padding:120px 52px;background:var(--g);
+      overflow:hidden;
+    }
+    .test-header{color:var(--sand);margin-bottom:60px}
+    .test-header .section-tag{color:var(--sage)}
+    .test-header .section-tag::before{background:var(--sage)}
+    .test-header .section-title{color:var(--sand)}
+    .test-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:20px;
+    }
+    .test-card{
+      padding:32px;border-radius:14px;
+      background:rgba(200,213,185,0.05);
+      border:1px solid rgba(200,213,185,0.1);
+      transition:background 0.4s,border-color 0.4s;
+    }
+    .test-card:hover{
+      background:rgba(200,213,185,0.1);
+      border-color:rgba(200,213,185,0.2);
+    }
+    .test-stars{color:var(--wood);font-size:0.85rem;letter-spacing:2px;margin-bottom:16px}
+    .test-text{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.1rem;font-style:italic;font-weight:300;
+      line-height:1.8;color:rgba(200,213,185,0.75);
+      margin-bottom:24px;
+    }
+    .test-author{
+      display:flex;align-items:center;gap:12px;
+    }
+    .test-avatar{
+      width:40px;height:40px;border-radius:50%;
+      background:var(--moss);overflow:hidden;
+      border:2px solid rgba(200,213,185,0.2);
+    }
+    .test-avatar img{width:100%;height:100%;object-fit:cover}
+    .test-name{
+      font-size:0.72rem;font-weight:700;
+      letter-spacing:0.1em;color:var(--sage);
+    }
+    .test-loc{
+      font-size:0.62rem;font-weight:400;
+      letter-spacing:0.08em;color:rgba(200,213,185,0.35);
+    }
+
+    /* ─── NEWSLETTER ─── */
+    #newsletter{
+      padding:120px 52px;
+      background:var(--sand);text-align:center;
+      position:relative;overflow:hidden;
+    }
+    #newsletter::before{
+      content:'FORESTA';
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-family:'Playfair Display',serif;font-size:18vw;font-weight:900;
+      color:rgba(26,48,33,0.03);white-space:nowrap;pointer-events:none;
+      line-height:1;
+    }
+    .nl-inner{max-width:580px;margin:0 auto;position:relative;z-index:1}
+    .nl-tag{
+      font-size:0.6rem;font-weight:700;letter-spacing:0.32em;
+      text-transform:uppercase;color:var(--wood);
+      margin-bottom:20px;
+    }
+    .nl-title{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(2rem,4vw,3rem);font-weight:700;
+      color:var(--g);line-height:1.15;margin-bottom:14px;
+    }
+    .nl-subtitle{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.15rem;font-weight:300;font-style:italic;
+      color:rgba(47,79,79,0.6);margin-bottom:40px;line-height:1.7;
+    }
+    .nl-form{
+      display:flex;gap:0;border-radius:50px;overflow:hidden;
+      border:1.5px solid rgba(26,48,33,0.15);
+      background:white;
+      box-shadow:0 8px 40px rgba(26,48,33,0.08);
+    }
+    .nl-input{
+      flex:1;padding:16px 24px;border:none;background:transparent;
+      font-family:'Montserrat',sans-serif;font-size:0.82rem;
+      color:var(--g);outline:none;
+    }
+    .nl-input::placeholder{color:var(--muted)}
+    .nl-submit{
+      padding:14px 30px;background:var(--g);color:var(--sand);
+      border:none;border-radius:50px;
+      font-size:0.68rem;font-weight:700;letter-spacing:0.18em;
+      text-transform:uppercase;margin:4px;
+      transition:background 0.3s;
+    }
+    .nl-submit:hover{background:var(--wood)}
+    .nl-note{
+      font-size:0.62rem;color:var(--muted);margin-top:14px;
+      letter-spacing:0.06em;
+    }
+
+    /* ─── FOOTER ─── */
+    footer{
+      background:var(--g2);padding:80px 52px 40px;
+      color:rgba(200,213,185,0.5);
+    }
+    .footer-top{
+      display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+      gap:60px;margin-bottom:60px;
+    }
+    .footer-brand{}
+    .footer-logo{
+      display:flex;align-items:center;gap:10px;
+      margin-bottom:18px;
+    }
+    .footer-logo-text{
+      font-family:'Playfair Display',serif;
+      font-size:1.3rem;font-weight:700;
+      letter-spacing:0.14em;color:var(--sage);
+    }
+    .footer-tagline{
+      font-family:'Cormorant Garamond',serif;
+      font-size:1rem;font-style:italic;font-weight:300;
+      color:rgba(200,213,185,0.4);margin-bottom:24px;line-height:1.7;
+    }
+    .footer-socials{display:flex;gap:12px}
+    .footer-social{
+      width:36px;height:36px;border-radius:50%;
+      border:1px solid rgba(200,213,185,0.15);
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.85rem;color:rgba(200,213,185,0.4);
+      transition:all 0.3s;
+    }
+    .footer-social:hover{background:rgba(200,213,185,0.08);border-color:rgba(200,213,185,0.3);color:var(--sage)}
+    .footer-col-title{
+      font-size:0.65rem;font-weight:700;letter-spacing:0.25em;
+      text-transform:uppercase;color:rgba(200,213,185,0.6);
+      margin-bottom:20px;
+    }
+    .footer-links{display:flex;flex-direction:column;gap:12px}
+    .footer-links a{
+      font-size:0.78rem;font-weight:400;
+      color:rgba(200,213,185,0.35);
+      transition:color 0.25s;letter-spacing:0.04em;
+    }
+    .footer-links a:hover{color:var(--sage)}
+    .footer-bottom{
+      border-top:1px solid rgba(200,213,185,0.07);
+      padding-top:28px;
+      display:flex;justify-content:space-between;align-items:center;
+      flex-wrap:wrap;gap:12px;
+    }
+    .footer-copy{font-size:0.65rem;letter-spacing:0.1em}
+    .footer-legal{display:flex;gap:24px}
+    .footer-legal a{font-size:0.65rem;color:rgba(200,213,185,0.25);letter-spacing:0.08em;transition:color 0.25s}
+    .footer-legal a:hover{color:var(--sage)}
+
+    /* ─── RESPONSIVE ─── */
+    @media(max-width:1024px){
+      nav{padding:0 28px}
+      .nav-center{display:none}
+      #philosophy{grid-template-columns:1fr;gap:48px;padding:80px 28px}
+      #collections{padding:80px 28px}
+      .collections-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+      .col-card-tall{grid-row:span 1}
+      .col-card-tall .col-card-img{min-height:280px}
+      #featured{grid-template-columns:1fr;padding:80px 28px;gap:40px}
+      .featured-inner{display:grid;grid-template-columns:1fr}
+      #lookbook{padding:80px 0 80px 28px}
+      #sustainability{padding:80px 28px}
+      .sust-grid{grid-template-columns:1fr 1fr}
+      #testimonials{padding:80px 28px}
+      .test-grid{grid-template-columns:1fr}
+      #newsletter{padding:80px 28px}
+      .footer-top{grid-template-columns:1fr 1fr;gap:40px}
+      footer{padding:60px 28px 32px}
+      .stats-bar{flex-wrap:wrap;gap:32px;padding:48px 28px}
+      .stat-item{max-width:160px}
+      .stat-item+.stat-item::before{display:none}
+      .hero-content{padding:0 28px 56px}
+      .hero-scroll{right:28px}
+    }
+    @media(max-width:640px){
+      nav{padding:0 18px;height:64px}
+      .hero-title{font-size:3rem}
+      .collections-grid{grid-template-columns:1fr}
+      .sust-grid{grid-template-columns:1fr}
+      .test-grid{grid-template-columns:1fr}
+      .footer-top{grid-template-columns:1fr}
+      .hero-scroll{display:none}
+      .nav-cta{display:none}
+    }
+
+    /* ─── DARK MODE OVERRIDES ─── */
+    [data-theme="dark"] body{background:var(--bg-body)}
+    [data-theme="dark"] #philosophy{background:var(--bg-body)}
+    [data-theme="dark"] .phil-title,
+    [data-theme="dark"] .section-title{color:var(--text-primary)}
+    [data-theme="dark"] .phil-body,
+    [data-theme="dark"] .product-description{color:var(--text-body)}
+    [data-theme="dark"] .phil-link{color:var(--sage);border-color:var(--sage)}
+    [data-theme="dark"] .phil-link:hover{color:var(--wood);border-color:var(--wood)}
+    [data-theme="dark"] #collections,
+    [data-theme="dark"] #lookbook{background:var(--bg-body)}
+    [data-theme="dark"] .section-link{color:var(--sage);border-color:var(--sage)}
+    [data-theme="dark"] .section-link:hover{color:var(--wood);border-color:var(--wood)}
+    [data-theme="dark"] .look-card-info{background:var(--bg-card)}
+    [data-theme="dark"] .look-card-name{color:var(--text-primary)}
+    [data-theme="dark"] .look-card-price{color:var(--wood)}
+    [data-theme="dark"] .look-card-num{color:var(--text-muted)}
+    [data-theme="dark"] #sustainability{background:var(--bg-subtle)}
+    [data-theme="dark"] .sust-card{background:var(--bg-card);border-color:var(--border-col)}
+    [data-theme="dark"] .sust-card-title{color:var(--text-primary)}
+    [data-theme="dark"] .sust-card-body{color:var(--text-muted)}
+    [data-theme="dark"] .sust-icon{background:var(--bg-subtle)}
+    [data-theme="dark"] #newsletter{background:var(--bg-subtle)}
+    [data-theme="dark"] #newsletter::before{color:rgba(200,213,185,0.03)}
+    [data-theme="dark"] .nl-title{color:var(--text-primary)}
+    [data-theme="dark"] .nl-subtitle{color:var(--text-muted)}
+    [data-theme="dark"] .nl-form{background:var(--bg-card);border-color:var(--border-col)}
+    [data-theme="dark"] .nl-input{color:var(--text-primary)}
+    [data-theme="dark"] .nl-note{color:var(--text-muted)}
+    [data-theme="dark"] .lookbook-scroll-hint{color:var(--text-muted)}
+    [data-theme="dark"] .section-tag{color:var(--wood)}
+    [data-theme="dark"] .section-tag::before{background:var(--wood)}
+    [data-theme="dark"] .cursor-dm #cursor{background:var(--sage);mix-blend-mode:normal}
+    [data-theme="dark"] #cursor{background:var(--sage);mix-blend-mode:normal}
+    [data-theme="dark"] #cursor-ring{border-color:var(--sage)}
+    [data-theme="dark"] .nav-logo-img{filter:brightness(0) invert(1) sepia(1) saturate(0.4) brightness(1.8)}
+  </style>
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav id="navbar">
+    <a class="nav-logo" href="/">
+      <img class="nav-logo-img" src="/static/logo1.png" alt="Foresta" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+      <!-- SVG fallback if logo.png not found -->
+      <svg style="display:none" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 2C17 2 4 10 4 20C4 26.627 9.373 32 16 32C16.34 32 16.671 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.9"/>
+        <path d="M17 2C17 2 30 10 30 20C30 26.627 24.627 32 18 32C17.66 32 17.329 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.5"/>
+        <line x1="17" y1="31" x2="17" y2="14" stroke="#C8D5B9" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="17" y1="22" x2="22" y2="17" stroke="#C8D5B9" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+        <line x1="17" y1="26" x2="12" y2="21" stroke="#C8D5B9" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+      <span class="logo-text" id="logoTextFallback" style="display:none">FORESTA</span>
+    </a>
+    <ul class="nav-center">
+      <li><a href="/" data-i18n="nav_home">Home</a></li>
+      <li><a href="/products" data-i18n="nav_shop">Shop</a></li>
+      <li><a href="#sustainability">Why Foresta</a></li>
+      <li><a href="#philosophy">Our Story</a></li>
+      <li><a href="#newsletter">Journal</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="/search" class="nav-icon" aria-label="Search" style="text-decoration:none">⌕</a>
+      <a href="/wishlist" class="nav-icon" aria-label="Wishlist" style="text-decoration:none;position:relative">
+        ♡
+        {% if wishlist_count > 0 %}
+        <span id="wishBadge" style="position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:#A0522D;color:#fff;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px">{{ wishlist_count }}</span>
+        {% else %}
+        <span id="wishBadge" style="position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:#A0522D;color:#fff;font-size:.5rem;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px">0</span>
+        {% endif %}
+      </a>
+      <a href="/cart" class="nav-icon" aria-label="Cart" style="text-decoration:none;position:relative">
+        ⊕
+        <span id="cartBadge" style="position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:#A0522D;color:#fff;font-size:.5rem;font-weight:700;display:{% if cart_count > 0 %}flex{% else %}none{% endif %};align-items:center;justify-content:center;padding:0 3px">{{ cart_count }}</span>
+      </a>
+      <!-- Language Toggle -->
+      <button class="lang-toggle" onclick="toggleLanguage()" title="Switch language">عربي</button>
+      <!-- Dark / Light Toggle -->
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="theme-toggle-icon" id="themeIcon">☀️</span>
+        <span class="theme-toggle-label" id="themeLabel">Light</span>
+        <div class="toggle-pip"></div>
+      </button>
+      <a class="nav-cta" href="/products">Shop Now</a>
+    </div>
+  </nav>
+  <div class="toast-container" id="toastContainer" style="position:fixed;bottom:28px;right:28px;z-index:10000;display:flex;flex-direction:column;gap:10px"></div>
+
+  <!-- ─── HERO ─── -->
+  <section id="hero">
+    <div class="hero-bg">
+      <img
+        src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=1800&q=85"
+        alt="Forest canopy"
+        draggable="false"
+      />
+    </div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-tag" data-i18n="hero_eyebrow">
+        <span class="hero-tag-dot"></span>
+        Autumn Canopy Collection 2025
+      </div>
+      <h1 class="hero-title"><span data-i18n="hero_title_1">Wear the forest.</span><br/><span data-i18n="hero_title_2">Leave it standing.</span></h1>
+      <p class="hero-subtitle">
+        Designs inspired by the wild.<br/>
+        Wear the spirit of the forest.
+      </p>
+      <div class="hero-actions">
+        <a href="/products" class="btn-hero-primary" data-i18n="hero_cta">Explore the Collection</a>
+        <button class="btn-hero-ghost" onclick="document.getElementById('philosophy').scrollIntoView({behavior:'smooth'})">
+          Our Story
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ─── MARQUEE ─── -->
+  <div class="marquee-strip">
+    <div class="marquee-inner" id="marqueeInner">
+      <!-- duplicated for seamless loop -->
+    </div>
+  </div>
+
+  <!-- ─── PHILOSOPHY ─── -->
+  <section id="philosophy">
+    <div class="reveal-left">
+      <div class="phil-tag">Our Philosophy</div>
+      <h2 class="phil-title"><span data-i18n="phil_line1">Nature is not</span><br/><span data-i18n="phil_line2">a backdrop.</span><br/><span data-i18n="phil_line3">It's </span><em data-i18n="phil_design">the design.</em></h2>
+      <p class="phil-body">
+        Every Foresta design is born in the wild — drawn from the raw beauty of forests, the power of wolves, the grace of eagles, and the untamed spirit of nature. Clothing that tells a story.
+      </p>
+      <a class="phil-link" href="#sustainability">Read Our Manifesto →</a>
+    </div>
+
+    <div class="phil-image-grid reveal-right">
+      <div class="phil-img phil-img-big">
+        <img src="https://images.unsplash.com/photo-1585911735095-7f407bc19baf?w=600&q=80" alt="Linen close up"/>
+        <span class="phil-img-label">Belgian Linen</span>
+      </div>
+      <div class="phil-img">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Craftsmanship"/>
+        <span class="phil-img-label">Handcrafted</span>
+      </div>
+      <div class="phil-img">
+        <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80" alt="Natural dyes"/>
+        <span class="phil-img-label">Natural Tones</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STATS ─── -->
+  <div class="stats-bar">
+    <div class="stat-item reveal delay-1">
+      <div class="stat-num" data-target="120">0</div>
+      <div class="stat-label">Exclusive Designs</div>
+    </div>
+    <div class="stat-item reveal delay-2">
+      <div class="stat-num" data-target="50">0</div>
+      <div class="stat-label">Countries Shipped</div>
+    </div>
+    <div class="stat-item reveal delay-3">
+      <div class="stat-num" data-target="12000">0</div>
+      <div class="stat-label">Happy Customers</div>
+    </div>
+    <div class="stat-item reveal delay-4">
+      <div class="stat-num" data-target="238">0</div>
+      <div class="stat-label">5-Star Reviews</div>
+    </div>
+  </div>
+
+  <!-- ─── COLLECTIONS ─── -->
+  <section id="collections">
+    <div class="section-header">
+      <div>
+        <div class="section-tag reveal">Curated for the Season</div>
+        <h2 class="section-title reveal delay-1" data-i18n="coll_title">Our Collections</h2>
+      </div>
+      <a class="section-link reveal delay-2" href="/products" data-i18n="coll_view_all">View All Collections →</a>
+    </div>
+
+    <div class="collections-grid">
+      <div class="col-card col-card-tall reveal-scale">
+        <img class="col-card-img" src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=700&q=80" alt="Canopy Collection"/>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-info">
+          <div class="col-season">Autumn 2025</div>
+          <div class="col-name">The Canopy<br/>Collection</div>
+          <div class="col-count">12 Pieces · Linen & Cotton</div>
+          <a href="/products"><button class="col-btn">Explore →</button></a>
+        </div>
+      </div>
+      <div class="col-card reveal-scale delay-1">
+        <img class="col-card-img" src="https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=600&q=80" alt="River Stone"/>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-info">
+          <div class="col-season">Perennial</div>
+          <div class="col-name">River Stone Essentials</div>
+          <div class="col-count">8 Pieces</div>
+          <a href="/products"><button class="col-btn">Explore →</button></a>
+        </div>
+      </div>
+      <div class="col-card reveal-scale delay-2">
+        <img class="col-card-img" src="https://images.unsplash.com/photo-1594938298603-c8148b9a7691?w=600&q=80" alt="Dusk Outerwear"/>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-info">
+          <div class="col-season">Autumn 2025</div>
+          <div class="col-name">Dusk Outerwear</div>
+          <div class="col-count">6 Pieces</div>
+          <a href="/products?category=outerwear"><button class="col-btn">Explore →</button></a>
+        </div>
+      </div>
+      <div class="col-card reveal-scale delay-3">
+        <img class="col-card-img" src="https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=600&q=80" alt="Morning Ritual"/>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-info">
+          <div class="col-season">All Season</div>
+          <div class="col-name">Morning Ritual</div>
+          <div class="col-count">10 Pieces</div>
+          <a href="/products?category=sets"><button class="col-btn">Explore →</button></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURED PRODUCT ─── -->
+  <section id="featured">
+    <div class="featured-image reveal-left">
+      <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=700&q=85" alt="Canopy Linen Jacket"/>
+      <div class="featured-badge">⭑ New Season Favourite</div>
+      <div class="featured-price-float">
+        <div class="float-was">Was $435</div>
+        <div class="float-price">$348</div>
+      </div>
+    </div>
+
+    <div class="reveal-right delay-2">
+      <div class="featured-tag">Featured Product</div>
+      <h2 class="featured-title"><span data-i18n="feat_title1">The Canopy</span><br/><em data-i18n="feat_title2">Linen Jacket</em></h2>
+      <p class="featured-desc" data-notranslate>
+        A bold forest-inspired statement piece. Features an original wolf-and-pine artwork printed on premium heavyweight fabric — rich detail that turns heads and sparks conversation wherever you go.
+      </p>
+      <div class="featured-attrs">
+        <div class="feat-attr"><span class="feat-attr-icon">🎨</span><span class="feat-attr-text">Original Wildlife Print</span></div>
+        <div class="feat-attr"><span class="feat-attr-icon">👕</span><span class="feat-attr-text">Premium Heavy Fabric</span></div>
+        <div class="feat-attr"><span class="feat-attr-icon">⭐</span><span class="feat-attr-text">4.9 · 238 Reviews</span></div>
+      </div>
+      <div class="featured-actions">
+        <a href="/product/canopy-linen-jacket"><button class="btn-featured-primary">View the Jacket</button></a>
+        <button class="btn-featured-ghost" onclick="quickWishlistHome('canopy-linen-jacket', this)">♡ Add to Wishlist</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── LOOKBOOK ─── -->
+  <section id="lookbook">
+    <div class="lookbook-header">
+      <div class="section-tag reveal">The Journal</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <h2 class="section-title reveal delay-1" style="color:var(--g)">Styled in the Wild</h2>
+        <a class="section-link reveal delay-2" href="/products">View Full Lookbook →</a>
+      </div>
+    </div>
+
+    <div class="lookbook-track-wrap" id="lookbookTrack">
+      <div class="lookbook-track">
+        <div class="look-card reveal">
+          <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80" alt="Look 1"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 01</div>
+            <div class="look-card-name">The Canopy Jacket</div>
+            <div class="look-card-price">$348</div>
+          </div>
+        </div>
+        <div class="look-card reveal delay-1">
+          <img src="https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=400&q=80" alt="Look 2"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 02</div>
+            <div class="look-card-name">Stone Linen Trousers</div>
+            <div class="look-card-price">$198</div>
+          </div>
+        </div>
+        <div class="look-card reveal delay-2">
+          <img src="https://images.unsplash.com/photo-1594938298603-c8148b9a7691?w=400&q=80" alt="Look 3"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 03</div>
+            <div class="look-card-name">Dusk Oversized Coat</div>
+            <div class="look-card-price">$495</div>
+          </div>
+        </div>
+        <div class="look-card reveal delay-3">
+          <img src="https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=400&q=80" alt="Look 4"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 04</div>
+            <div class="look-card-name">Morning Ritual Set</div>
+            <div class="look-card-price">$267</div>
+          </div>
+        </div>
+        <div class="look-card reveal delay-4">
+          <img src="https://images.unsplash.com/photo-1585911735095-7f407bc19baf?w=400&q=80" alt="Look 5"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 05</div>
+            <div class="look-card-name">Birch Linen Shirt</div>
+            <div class="look-card-price">$178</div>
+          </div>
+        </div>
+        <div class="look-card reveal delay-5">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Look 6"/>
+          <div class="look-card-info">
+            <div class="look-card-num">Look 06</div>
+            <div class="look-card-name">Forest Floor Knit</div>
+            <div class="look-card-price">$245</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="lookbook-scroll-hint">
+      <span>Drag to explore</span>
+      <span class="scroll-arrow">→</span>
+    </div>
+  </section>
+
+  <!-- ─── WHY FORESTA ─── -->
+  <section id="sustainability">
+    <div class="sust-inner">
+      <div class="sust-header">
+        <div class="section-tag reveal" style="justify-content:center">Why Foresta</div>
+        <h2 class="section-title reveal delay-1" style="text-align:center"><span data-i18n="sust_title1">Where the wild</span><br/><span data-i18n="sust_title2">meets your wardrobe</span></h2>
+      </div>
+      <div class="sust-grid">
+        <div class="sust-card reveal">
+          <div class="sust-icon">🐺</div>
+          <div class="sust-card-title">Exclusive Wildlife Prints</div>
+          <div class="sust-card-body">Every design is an original artwork — wolves, eagles, bears, deer, and the deep forest rendered by our in-house artists. No two collections share the same print.</div>
+          <div class="sust-num">120+</div>
+        </div>
+        <div class="sust-card reveal delay-1">
+          <div class="sust-icon">👕</div>
+          <div class="sust-card-title">Premium Quality</div>
+          <div class="sust-card-body">We use only heavyweight, high-density fabrics that hold vivid prints wash after wash. Colours stay bold, details stay sharp — season after season.</div>
+          <div class="sust-num">500g</div>
+        </div>
+        <div class="sust-card reveal delay-2">
+          <div class="sust-icon">🚀</div>
+          <div class="sust-card-title">Fast Worldwide Delivery</div>
+          <div class="sust-card-body">We ship to over 50 countries with tracked express delivery. New collections drop every season — be the first to own a piece before it sells out.</div>
+          <div class="sust-num">50+</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TESTIMONIALS ─── -->
+  <section id="testimonials">
+    <div class="test-header section-header" style="flex-direction:column;align-items:flex-start;gap:4px;padding-bottom:0">
+      <div class="section-tag">What People Say</div>
+      <h2 class="section-title reveal">Worn. Loved. Kept.</h2>
+    </div>
+    <div class="test-grid" style="margin-top:52px">
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text" data-notranslate>"The wolf print on my jacket is absolutely stunning — people stop me on the street to ask where I got it. The quality is beyond what I expected."</div>
+        <div class="test-author">
+          <div class="test-avatar"><img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&q=70" alt=""/></div>
+          <div>
+            <div class="test-name">Amélie Fontaine</div>
+            <div class="test-loc">Paris, France</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal delay-1">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text" data-notranslate>"The eagle hoodie I ordered arrived fast and the print is incredibly detailed. I've received so many compliments — already ordered two more pieces."</div>
+        <div class="test-author">
+          <div class="test-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=70" alt=""/></div>
+          <div>
+            <div class="test-name">Marcus Lehmann</div>
+            <div class="test-loc">Berlin, Germany</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal delay-2">
+        <div class="test-stars">★★★★★</div>
+        <div class="test-text" data-notranslate>"Finally a brand that combines fashion with wild art. The bear-print coat is a masterpiece — unique, bold, and the fabric feels premium. Will definitely be back."</div>
+        <div class="test-author">
+          <div class="test-avatar"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=70" alt=""/></div>
+          <div>
+            <div class="test-name">Layla Al Mansouri</div>
+            <div class="test-loc">Dubai, UAE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── NEWSLETTER ─── -->
+  <section id="newsletter">
+    <div class="nl-inner">
+      <div class="nl-tag reveal">Join the Forest</div>
+      <h2 class="nl-title reveal delay-1" data-i18n="nl_title">Slow down.<br/>Stay rooted.</h2>
+      <p class="nl-subtitle reveal delay-2">New arrivals, exclusive drops, and early access to limited collections — delivered once a month.</p>
+      <div class="nl-form reveal delay-3">
+        <input class="nl-input" type="email" id="nlEmail" placeholder="your@email.com" data-i18n-ph="nl_placeholder" />
+        <button class="nl-submit" id="nlBtn" onclick="subscribeNewsletter()" data-i18n="nl_btn">Join ✦</button>
+      </div>
+      <div id="nlFeedback" style="display:none;margin-top:14px;font-size:.72rem;font-weight:600;color:var(--g)"></div>
+      <div class="nl-note reveal delay-4">No spam. Unsubscribe any time.</div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <svg width="28" height="28" viewBox="0 0 34 34" fill="none">
+            <path d="M17 2C17 2 4 10 4 20C4 26.627 9.373 32 16 32C16.34 32 16.671 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.9"/>
+            <path d="M17 2C17 2 30 10 30 20C30 26.627 24.627 32 18 32C17.66 32 17.329 31.987 17 31.962V2Z" fill="#C8D5B9" opacity="0.5"/>
+            <line x1="17" y1="31" x2="17" y2="14" stroke="#C8D5B9" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <img src="/static/logo1.png" alt="Foresta" style="height:32px;width:auto;object-fit:contain;filter:brightness(0) invert(1) sepia(1) saturate(0.3) brightness(1.6)" onerror="this.style.display='none'"/>
+        </div>
+        <p class="footer-tagline" data-i18n="footer_tagline">
+          "We didn't set out to make clothes.<br/>
+          We set out to make things worth keeping."
+        </p>
+        <div class="footer-socials">
+          <a class="footer-social" href="#" aria-label="Instagram">𝕀</a>
+          <a class="footer-social" href="#" aria-label="Pinterest">𝙋</a>
+          <a class="footer-social" href="#" aria-label="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Collections</div>
+        <ul class="footer-links">
+          <li><a href="/products">Autumn Canopy</a></li>
+          <li><a href="/products">River Stone</a></li>
+          <li><a href="/products?category=outerwear">Dusk Outerwear</a></li>
+          <li><a href="/products?category=sets">Morning Ritual</a></li>
+          <li><a href="/products">Archive Sale</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a href="/#philosophy">Our Story</a></li>
+          <li><a href="/#sustainability">Why Foresta</a></li>
+          <li><a href="/#newsletter">Journal</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Support</div>
+        <ul class="footer-links">
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">Care Instructions</a></li>
+          <li><a href="#">Shipping & Returns</a></li>
+          <li><a href="#">Repair Service</a></li>
+          <li><a href="mailto:hello@foresta.store">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-copy" data-i18n="footer_copy">© 2025 Foresta. All rights reserved.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Cookie Settings</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/i18n.js"></script>
+
+  <!-- ─── JAVASCRIPT ─── -->
+  <script>
+    // ── Dark / Light Mode ──────────────────────────────────
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon   = document.getElementById('themeIcon');
+    const themeLabel  = document.getElementById('themeLabel');
+    let isDark = false;
+
+    // Check saved preference
+    const saved = localStorage.getItem('forestaTheme');
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      applyDark();
+    }
+
+    themeToggle.addEventListener('click', () => {
+      isDark ? applyLight() : applyDark();
+    });
+
+    function applyDark() {
+      isDark = true;
+      html.setAttribute('data-theme', 'dark');
+      themeIcon.textContent = '🌙';
+      themeLabel.textContent = 'Dark';
+      localStorage.setItem('forestaTheme', 'dark');
+    }
+    function applyLight() {
+      isDark = false;
+      html.setAttribute('data-theme', 'light');
+      themeIcon.textContent = '☀️';
+      themeLabel.textContent = 'Light';
+      localStorage.setItem('forestaTheme', 'light');
+    }
+
+    // ── Custom Cursor ──────────────────────────────────────
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top = my + 'px';
+    });
+
+    function animRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(animRing);
+    }
+    animRing();
+
+    document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; ring.style.opacity = '0'; });
+    document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; ring.style.opacity = '0.5'; });
+
+    // ── Navbar Scroll ──────────────────────────────────────
+    const nav = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // ── Scroll Reveal ──────────────────────────────────────
+    const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── Counter Animation ──────────────────────────────────
+    const nums = document.querySelectorAll('[data-target]');
+    const numObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = parseInt(el.dataset.target);
+          const suffix = el.closest('.stat-item').querySelector('.stat-label').textContent;
+          let current = 0;
+          const step = target / 60;
+          const timer = setInterval(() => {
+            current = Math.min(current + step, target);
+            const display = target >= 1000
+              ? Math.round(current).toLocaleString()
+              : Math.round(current);
+            el.textContent = display + (target === 100 ? '%' : '');
+            if (current >= target) clearInterval(timer);
+          }, 24);
+          numObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    nums.forEach(n => numObserver.observe(n));
+
+    // ── Marquee Content ────────────────────────────────────
+    const items = [
+      'Exclusive Wildlife Prints',
+      'Original Animal Designs',
+      'Premium Heavy Fabric',
+      'New Collection Every Season',
+      'Free Returns 30 Days',
+      'Fast Worldwide Shipping',
+      'Unique Forest Patterns',
+      'Bold Statement Pieces',
+    ];
+    const mi = document.getElementById('marqueeInner');
+    const row = [...items, ...items].map(t =>
+      `<span class="marquee-item"><span class="marquee-sep"></span>${t}</span>`
+    ).join('');
+    mi.innerHTML = row + row; // double for seamless loop
+
+    // ── Horizontal Drag Scroll ─────────────────────────────
+    const track = document.getElementById('lookbookTrack');
+    let isDown = false, startX, scrollLeft;
+    track.addEventListener('mousedown', e => {
+      isDown = true; track.style.cursor = 'grabbing';
+      startX = e.pageX - track.offsetLeft;
+      scrollLeft = track.scrollLeft;
+    });
+    track.addEventListener('mouseleave', () => { isDown = false; track.style.cursor = 'default'; });
+    track.addEventListener('mouseup', () => { isDown = false; track.style.cursor = 'default'; });
+    track.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - track.offsetLeft;
+      const walk = (x - startX) * 1.4;
+      track.scrollLeft = scrollLeft - walk;
+    });
+
+    // ── Toast ──────────────────────────────────────────────
+    function showToast(msg, type='success') {
+      const tc = document.getElementById('toastContainer');
+      const t  = document.createElement('div');
+      t.style.cssText = `padding:14px 20px;border-radius:10px;font-size:.75rem;font-weight:600;
+        background:${type==='error'?'#8B2020':'#1A3021'};color:#F5F5DC;
+        box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateX(120%);
+        transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+        max-width:300px;display:flex;align-items:center;gap:8px;font-family:Montserrat,sans-serif`;
+      t.innerHTML = `<span>${type==='error'?'✕':'✓'}</span><span>${msg}</span>`;
+      tc.appendChild(t);
+      setTimeout(() => t.style.transform='translateX(0)', 50);
+      setTimeout(() => { t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3200);
+    }
+
+    // ── Newsletter ─────────────────────────────────────────
+    async function subscribeNewsletter() {
+      const email = document.getElementById('nlEmail').value.trim();
+      const btn   = document.getElementById('nlBtn');
+      const fb    = document.getElementById('nlFeedback');
+      if (!email || !email.includes('@')) { showToast('Please enter a valid email','error'); return; }
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        const r = await fetch('/newsletter', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email})
+        });
+        const d = await r.json();
+        if (d.success) {
+          fb.textContent = d.message;
+          fb.style.display = 'block';
+          document.getElementById('nlEmail').value = '';
+          btn.textContent = '✓';
+          showToast('Welcome to the forest. ✦','success');
+        } else {
+          showToast(d.error || 'Something went wrong','error');
+          btn.disabled = false; btn.textContent = 'Join ✦';
+        }
+      } catch(e) { showToast('Network error, please try again','error'); btn.disabled=false; btn.textContent='Join ✦'; }
+    }
+    document.getElementById('nlEmail')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') subscribeNewsletter();
+    });
+
+    // ── Quick Wishlist (homepage featured) ─────────────────
+    async function quickWishlistHome(slug, btn) {
+      try {
+        const r = await fetch('/wishlist/toggle', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({slug})
+        });
+        const d = await r.json();
+        if (d.success) {
+          btn.textContent = d.saved ? '♥ Saved to Wishlist' : '♡ Add to Wishlist';
+          showToast(d.message, 'success');
+          const wb = document.getElementById('wishBadge');
+          if (wb) { wb.textContent = d.wishlist_count; wb.style.display = d.wishlist_count > 0 ? 'flex' : 'none'; }
+        }
+      } catch(e) { showToast('Network error','error'); }
+    }
+  </script>
+</body>
+</html>

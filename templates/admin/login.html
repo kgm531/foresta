@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foresta Admin — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --forest:  #1A3021;
+      --sage:    #2E5D4B;
+      --moss:    #4A7C59;
+      --cream:   #F7F3EE;
+      --linen:   #EDE8E0;
+      --bark:    #8C7355;
+      --text:    #2A2A2A;
+      --muted:   #7A7165;
+      --border:  #D8D0C4;
+      --error:   #8B2020;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+    }
+
+    /* ── Left panel ── */
+    .left-panel {
+      flex: 0 0 55%;
+      background: var(--forest);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 56px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 80% 20%, rgba(74,124,89,.25) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 10% 90%, rgba(46,93,75,.3) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .panel-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: rgba(247,243,238,.92);
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    .panel-art {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .panel-art-ring {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 1px solid rgba(247,243,238,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .panel-art-ring::before {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      border: 1px solid rgba(247,243,238,.18);
+    }
+
+    .panel-art-inner {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(74,124,89,.25);
+      border: 1px solid rgba(247,243,238,.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+    }
+
+    .panel-tagline {
+      position: relative;
+    }
+
+    .panel-tagline p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: rgba(247,243,238,.72);
+      line-height: 1.5;
+      max-width: 340px;
+    }
+
+    .panel-tagline span {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(247,243,238,.4);
+      margin-top: 12px;
+    }
+
+    /* ── Right panel (form) ── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bark);
+      margin-bottom: 10px;
+    }
+
+    .login-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: var(--forest);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .flash-error {
+      background: #FDF2F2;
+      border: 1px solid rgba(139,32,32,.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--error);
+      font-size: 13px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flash-error::before { content: '⚠'; font-size: 15px; }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(46,93,75,.1);
+    }
+
+    .form-input::placeholder { color: #BDB8B0; }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: var(--forest);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      margin-top: 8px;
+    }
+
+    .btn-login:hover { background: var(--sage); }
+    .btn-login:active { transform: scale(.98); }
+
+    .login-footer {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .login-footer a {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .login-footer a:hover { color: var(--sage); }
+
+    .login-version {
+      font-size: 11px;
+      color: var(--border);
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 768px) {
+      .left-panel { display: none; }
+      .right-panel { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left decorative panel -->
+  <div class="left-panel">
+    <div class="panel-logo">Foresta</div>
+    <div class="panel-art">
+      <div class="panel-art-ring">
+        <div class="panel-art-inner">🌿</div>
+      </div>
+    </div>
+    <div class="panel-tagline">
+      <p>Wear the forest. Leave it standing.</p>
+      <span>Admin Portal · Foresta Commerce</span>
+    </div>
+  </div>
+
+  <!-- Right login form -->
+  <div class="right-panel">
+    <div class="login-box">
+      <p class="login-eyebrow">Admin Portal</p>
+      <h1 class="login-title">Welcome back</h1>
+      <p class="login-sub">Sign in to manage your store</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-error">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="/admin/login">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input class="form-input" type="text" id="username" name="username"
+                 placeholder="admin" autocomplete="username" required/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-wrapper">
+            <input class="form-input" type="password" id="password" name="password"
+                   placeholder="••••••••" autocomplete="current-password" required/>
+            <button type="button" class="password-toggle" onclick="togglePass()" title="Show/hide password">👁</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">Sign In to Dashboard</button>
+      </form>
+
+      <div class="login-footer">
+        <a href="/">← Back to Store</a>
+        <span class="login-version">v2.0</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function togglePass() {
+      const p = document.getElementById('password');
+      p.type = p.type === 'password' ? 'text' : 'password';
+    }
+  </script>
+</body>
+</html>

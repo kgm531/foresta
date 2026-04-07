@@ -1,0 +1,402 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+
+  .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .stat-card.green::after  { background: linear-gradient(90deg, #2E5D4B, #4A7C59); }
+  .stat-card.amber::after  { background: linear-gradient(90deg, #A0522D, #C87941); }
+  .stat-card.blue::after   { background: linear-gradient(90deg, #2356A0, #3A7CC0); }
+  .stat-card.purple::after { background: linear-gradient(90deg, #5B3A8A, #7B5AA6); }
+
+  .stat-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card.green  .stat-icon { background: #EAF4ED; }
+  .stat-card.amber  .stat-icon { background: #FDF6ED; }
+  .stat-card.blue   .stat-icon { background: #EEF4FB; }
+  .stat-card.purple .stat-icon { background: #F3EEFB; }
+
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: var(--forest);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-trend {
+    position: absolute;
+    top: 18px; right: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .trend-up   { background: #EAF4ED; color: #2E5D4B; }
+  .trend-down { background: #FDF2F2; color: #8B2020; }
+
+  /* ── Bottom grid ── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  /* ── Chart ── */
+  .chart-container {
+    position: relative;
+    height: 240px;
+    padding: 4px 0;
+  }
+
+  /* ── Status breakdown ── */
+  .status-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-name { flex: 1; font-size: 13px; color: var(--text); text-transform: capitalize; }
+
+  .status-bar-wrap {
+    flex: 2;
+    height: 6px;
+    background: var(--linen);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .status-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .6s ease;
+  }
+
+  .status-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 24px;
+    text-align: right;
+  }
+
+  /* ── Recent orders ── */
+  .product-thumb {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .customer-name { font-weight: 500; font-size: 13px; }
+  .customer-email { font-size: 11px; color: var(--muted); }
+
+  /* ── Low stock ── */
+  .low-stock-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .low-stock-item {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .low-stock-img {
+    width: 44px; height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .low-stock-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .low-stock-price { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .low-stock-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">Welcome back — here's what's happening in your store</p>
+  </div>
+  <a href="/admin/products/new" class="btn btn-primary">
+    <span>+</span> Add Product
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card green">
+    <div class="stat-icon">💰</div>
+    <div class="stat-value">${{ "%.0f"|format(stats.revenue) }}</div>
+    <div class="stat-label">Total Revenue</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-icon">📦</div>
+    <div class="stat-value">{{ stats.orders }}</div>
+    <div class="stat-label">Total Orders</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-icon">🛍</div>
+    <div class="stat-value">{{ stats.products }}</div>
+    <div class="stat-label">Products</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon">📧</div>
+    <div class="stat-value">{{ stats.subscribers }}</div>
+    <div class="stat-label">Subscribers</div>
+  </div>
+</div>
+
+<!-- Chart + Status -->
+<div class="bottom-grid">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Revenue — Last 7 Days</span>
+      <span class="text-muted text-sm">Daily totals</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Order Status</span>
+    </div>
+    <div class="card-body">
+      {% if status_counts %}
+        {% set total_orders = status_counts.values()|sum %}
+        <div class="status-list">
+          {% set colors = {'confirmed':'#1A3021','processing':'#A0522D','shipped':'#2E5D4B','delivered':'#4A7C59','cancelled':'#8B2020'} %}
+          {% for status, count in status_counts.items() %}
+          <div class="status-row">
+            <div class="status-dot" style="background:{{ colors.get(status,'#999') }}"></div>
+            <span class="status-name">{{ status }}</span>
+            <div class="status-bar-wrap">
+              <div class="status-bar-fill"
+                   style="width:{{ ((count/total_orders)*100)|round }}%;background:{{ colors.get(status,'#999') }}">
+              </div>
+            </div>
+            <span class="status-count">{{ count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:32px 0;">
+          <div class="empty-state-icon">📭</div>
+          <p class="text-muted text-sm">No orders yet</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders + Low Stock -->
+<div class="bottom-grid">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Orders</span>
+      <a href="/admin/orders" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+      {% if recent_orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td>
+              <span class="font-mono text-sm">#{{ o.order_id }}</span>
+            </td>
+            <td>
+              <div class="customer-name">{{ o.name }}</div>
+              <div class="customer-email">{{ o.email }}</div>
+            </td>
+            <td><strong>${{ "%.2f"|format(o.total) }}</strong></td>
+            <td>
+              {% set badge_class = {'confirmed':'badge-gray','processing':'badge-amber','shipped':'badge-blue','delivered':'badge-green','cancelled':'badge-red'} %}
+              <span class="badge {{ badge_class.get(o.status,'badge-gray') }}">{{ o.status }}</span>
+            </td>
+            <td class="text-muted text-sm">{{ o.created_at.strftime('%d %b') }}</td>
+            <td>
+              <a href="/admin/orders/{{ o.id }}" class="btn btn-secondary btn-xs">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p class="empty-state-title">No orders yet</p>
+          <p class="text-muted text-sm">Orders will appear here after customers checkout</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Out of Stock</span>
+      <a href="/admin/products" class="btn btn-secondary btn-sm">Manage</a>
+    </div>
+    <div class="card-body">
+      {% if out_of_stock %}
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          {% for p in out_of_stock %}
+          <div class="low-stock-item">
+            {% if p.cover %}
+              <img class="low-stock-img" src="{{ p.cover }}" alt="{{ p.name }}"
+                   onerror="this.style.display='none'"/>
+            {% endif %}
+            <div style="flex:1;min-width:0;">
+              <div class="low-stock-name">{{ p.name }}</div>
+              <div class="low-stock-price">${{ "%.0f"|format(p.price) }}</div>
+            </div>
+            <a href="/admin/products/{{ p.id }}/edit" class="btn btn-secondary btn-xs">Edit</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:24px 0;">
+          <div class="empty-state-icon">✅</div>
+          <p class="text-muted text-sm">All products in stock</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const chartData = {{ chart_data | tojson }};
+
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Revenue ($)',
+        data: chartData.values,
+        backgroundColor: 'rgba(26,48,33,.12)',
+        borderColor: '#2E5D4B',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+        hoverBackgroundColor: 'rgba(46,93,75,.25)',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1A3021',
+          titleColor: 'rgba(255,255,255,.7)',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => ' $' + ctx.parsed.y.toFixed(2)
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#7A7165' }
+        },
+        y: {
+          grid: { color: 'rgba(0,0,0,.04)' },
+          ticks: {
+            font: { size: 11 }, color: '#7A7165',
+            callback: v => '$' + v
+          },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

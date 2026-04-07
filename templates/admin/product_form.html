@@ -1,0 +1,514 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if product else 'New' }} Product{% endblock %}
+{% block breadcrumb %}{{ 'Edit' if product else 'New' }} Product{% endblock %}
+
+{% block head %}
+<style>
+  .form-sections {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .section-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--forest);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-body { padding: 20px; }
+
+  /* Cover upload */
+  .cover-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+  }
+
+  .cover-upload-zone:hover {
+    border-color: var(--sage);
+    background: rgba(46,93,75,.03);
+  }
+
+  .cover-upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .cover-preview {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 8px;
+    display: none;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .cover-preview.show { display: block; }
+
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-text { font-size: 13px; color: var(--muted); }
+  .upload-sub  { font-size: 11px; color: var(--border); margin-top: 4px; }
+
+  /* Sizes grid */
+  .sizes-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .size-item {
+    position: relative;
+  }
+
+  .size-item input[type=checkbox] { display: none; }
+
+  .size-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all .15s;
+    background: #fff;
+    gap: 3px;
+  }
+
+  .size-label:hover { border-color: var(--sage); color: var(--sage); }
+
+  .size-item input:checked + .size-label {
+    background: var(--forest);
+    border-color: var(--forest);
+    color: #fff;
+  }
+
+  .size-avail-toggle {
+    font-size: 9px;
+    opacity: .7;
+  }
+
+  /* Eco rows */
+  .eco-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  /* Extra images */
+  .extra-images-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .extra-image-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Price row */
+  .price-input-wrap {
+    position: relative;
+  }
+
+  .price-input-wrap .currency-symbol {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .price-input-wrap input { padding-left: 26px; }
+
+  /* Tabs for details */
+  .details-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .details-tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .details-tab.active {
+    background: var(--forest);
+    color: #fff;
+    border-color: var(--forest);
+  }
+
+  .details-pane { display: none; }
+  .details-pane.active { display: block; }
+
+  .sticky-actions {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin: 0 -20px -20px;
+    border-radius: 0 0 12px 12px;
+  }
+
+  @media (max-width: 960px) {
+    .form-sections { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ 'Edit Product' if product else 'New Product' }}</h1>
+    <p class="page-sub">
+      {% if product %}Editing: {{ product.name }}{% else %}Add a new product to your catalogue{% endif %}
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    {% if product %}
+      <a href="/product/{{ product.slug }}" target="_blank" class="btn btn-secondary">
+        👁 Preview
+      </a>
+    {% endif %}
+    <a href="/admin/products" class="btn btn-secondary">← Back</a>
+  </div>
+</div>
+
+<form method="post"
+      action="{{ '/admin/products/'+product.id|string+'/edit' if product else '/admin/products/new' }}"
+      enctype="multipart/form-data">
+
+  <div class="form-sections">
+
+    <!-- ── LEFT column ── -->
+    <div>
+
+      <!-- Basic info -->
+      <div class="section-card">
+        <div class="section-title">🌿 Basic Information</div>
+        <div class="section-body">
+          <div class="form-group">
+            <label class="form-label">Product Name <span class="req">*</span></label>
+            <input class="form-control" type="text" name="name"
+                   value="{{ product.name if product else '' }}" required placeholder="e.g. The Canopy Linen Jacket"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Subtitle / Tagline</label>
+            <input class="form-control" type="text" name="subtitle"
+                   value="{{ product.subtitle if product else '' }}"
+                   placeholder="Short evocative description"/>
+          </div>
+
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">Collection</label>
+              <input class="form-control" type="text" name="collection"
+                     value="{{ product.collection if product else '' }}"
+                     placeholder="e.g. Autumn Canopy"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-control" name="category">
+                <option value="">— Select —</option>
+                {% for c in ['outerwear','tops','bottoms','sets','accessories'] %}
+                  <option value="{{ c }}"
+                    {% if product and product.category == c %}selected{% endif %}>
+                    {{ c|capitalize }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Badge / Label</label>
+            <input class="form-control" type="text" name="badge"
+                   value="{{ product.badge if product else '' }}"
+                   placeholder="e.g. New Arrival, Bestseller, Limited Edition"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="5"
+                      placeholder="Full product description…">{{ product.description if product else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="section-card">
+        <div class="section-title">💰 Pricing</div>
+        <div class="section-body">
+          <div class="form-row form-row-3">
+            <div class="form-group">
+              <label class="form-label">Price <span class="req">*</span></label>
+              <div class="price-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input class="form-control" type="number" name="price" step="0.01" min="0"
+                       value="{{ product.price if product else '' }}" required placeholder="0.00"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Original Price</label>
+              <div class="price-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input class="form-control" type="number" name="original_price" step="0.01" min="0"
+                       value="{{ product.original_price if product else '' }}" placeholder="0.00"/>
+              </div>
+              <p class="form-hint">Leave blank if no discount</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discount %</label>
+              <input class="form-control" type="number" name="discount" min="0" max="100"
+                     value="{{ product.discount if product else 0 }}" placeholder="0"/>
+            </div>
+          </div>
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">Rating (0–5)</label>
+              <input class="form-control" type="number" name="rating" step="0.1" min="0" max="5"
+                     value="{{ product.rating if product else 5.0 }}"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Review Count</label>
+              <input class="form-control" type="number" name="reviews" min="0"
+                     value="{{ product.reviews if product else 0 }}"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sizes -->
+      <div class="section-card">
+        <div class="section-title">📐 Available Sizes</div>
+        <div class="section-body">
+          <p class="form-hint" style="margin-bottom:14px;">Check all sizes this product comes in. Unchecked sizes will show as unavailable.</p>
+          <div class="sizes-grid">
+            {% set size_labels = ['XS','S','M','L','XL','XXL'] %}
+            {% for sl in size_labels %}
+              {% set ns = namespace(checked=false) %}
+              {% if product %}
+                {% for sz in product.sizes %}
+                  {% if sz.label == sl and sz.available %}
+                    {% set ns.checked = true %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+              <div class="size-item">
+                <input type="checkbox" name="size_{{ sl }}" id="sz_{{ sl }}"
+                       {{ 'checked' if ns.checked else '' }}/>
+                <label class="size-label" for="sz_{{ sl }}">
+                  {{ sl }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Details accordion -->
+      <div class="section-card">
+        <div class="section-title">📋 Product Details (Accordion)</div>
+        <div class="section-body">
+          <div class="details-tabs">
+            {% for tab in ['Materials & Care','Fit & Sizing','Sustainability','Delivery & Returns'] %}
+              <button type="button" class="details-tab {{ 'active' if loop.first }}"
+                      onclick="switchTab('{{ loop.index0 }}')">
+                {{ tab }}
+              </button>
+            {% endfor %}
+          </div>
+          {% set detail_keys = ['Materials & Care','Fit & Sizing','Sustainability','Delivery & Returns'] %}
+          {% for key in detail_keys %}
+            <div class="details-pane {{ 'active' if loop.first }}" id="dtab_{{ loop.index0 }}">
+              <textarea class="form-control" name="detail_{{ key }}" rows="4"
+                        placeholder="Enter bullet points, one per line…">{% if product and product.details.get(key) %}{{ product.details[key]|join('\n') }}{% endif %}</textarea>
+              <p class="form-hint">One point per line. Each line becomes a bullet item.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Eco credentials -->
+      <div class="section-card">
+        <div class="section-title">🌱 Eco Credentials</div>
+        <div class="section-body">
+          {% for i in range(3) %}
+            {% set eco_item = product.eco[i] if product and product.eco|length > i else {} %}
+            <div class="eco-row">
+              <input class="form-control" type="text" name="eco_icon_{{ i }}"
+                     value="{{ eco_item.get('icon','') if eco_item else '' }}"
+                     placeholder="🌿" style="text-align:center;font-size:18px;"/>
+              <input class="form-control" type="text" name="eco_title_{{ i }}"
+                     value="{{ eco_item.get('title','') if eco_item else '' }}"
+                     placeholder="Eco claim, e.g. 100% Organic Linen"/>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT column ── -->
+    <div>
+
+      <!-- Cover image -->
+      <div class="section-card">
+        <div class="section-title">🖼 Cover Image</div>
+        <div class="section-body">
+          <img id="coverPreview" class="cover-preview {{ 'show' if product and product.cover else '' }}"
+               src="{{ product.cover if product and product.cover else '' }}" alt="Cover preview"/>
+
+          <div class="cover-upload-zone" id="coverZone">
+            <input type="file" name="cover_file" accept="image/*"
+                   onchange="previewCover(this)"/>
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Click to upload cover image</div>
+            <div class="upload-sub">PNG, JPG, WEBP · max 16 MB</div>
+          </div>
+
+          <div class="form-group" style="margin-top:14px;">
+            <label class="form-label">Or paste image URL</label>
+            <input class="form-control" type="url" name="cover_url"
+                   value="{{ product.cover if product and product.cover and not product.cover.startswith('/static') else '' }}"
+                   placeholder="https://…"
+                   oninput="previewCoverUrl(this.value)"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional images -->
+      <div class="section-card">
+        <div class="section-title">🗂 Gallery Images</div>
+        <div class="section-body">
+          <p class="form-hint" style="margin-bottom:12px;">Add up to 4 additional images (URL + label)</p>
+          <div class="extra-images-grid">
+            {% for i in range(4) %}
+              {% set img = product.images[i] if product and product.images|length > i else {} %}
+              <div>
+                <div class="form-row" style="grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">
+                  <input class="form-control" type="url" name="img_src_{{ i }}"
+                         value="{{ img.get('src','') if img else '' }}"
+                         placeholder="Image URL"/>
+                  <input class="form-control" type="text" name="img_label_{{ i }}"
+                         value="{{ img.get('label','') if img else '' }}"
+                         placeholder="Label (e.g. Back View)"/>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock & Publish -->
+      <div class="section-card">
+        <div class="section-title">⚙️ Status</div>
+        <div class="section-body">
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="hidden" name="in_stock" value="0"/>
+              <input type="checkbox" name="in_stock" value="1" style="width:18px;height:18px;accent-color:var(--forest);"
+                     {{ 'checked' if not product or product.in_stock else '' }}/>
+              <span style="font-size:13px;font-weight:500;">In Stock</span>
+            </label>
+            <p class="form-hint">Uncheck to mark as out of stock</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save actions -->
+      <div class="section-card">
+        <div class="section-body">
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
+            {{ '💾 Save Changes' if product else '🌿 Create Product' }}
+          </button>
+          {% if product %}
+            <a href="/admin/products" class="btn btn-secondary"
+               style="width:100%;justify-content:center;margin-top:8px;">
+              Cancel
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function previewCover(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('coverPreview');
+      img.src = e.target.result;
+      img.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function previewCoverUrl(url) {
+    if (!url) return;
+    const img = document.getElementById('coverPreview');
+    img.src = url;
+    img.classList.add('show');
+    img.onerror = () => img.classList.remove('show');
+  }
+
+  function switchTab(idx) {
+    document.querySelectorAll('.details-tab').forEach((t,i) =>
+      t.classList.toggle('active', i == idx));
+    document.querySelectorAll('.details-pane').forEach((p,i) =>
+      p.classList.toggle('active', i == idx));
+  }
+</script>
+{% endblock %}

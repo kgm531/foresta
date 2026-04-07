@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop All — Foresta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Montserrat:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/rtl.css"/>
+  <style>
+    :root {
+      --g:#1A3021;--g2:#0D1A12;--sand:#F5F5DC;--wood:#A0522D;
+      --sage:#C8D5B9;--moss:#E8EDE4;--T:.45s cubic-bezier(.4,0,.2,1);
+      --bg:#FAFAF5;--bg-card:#FFFFFF;--bg-subtle:#E8EDE4;
+      --text-h:#1A3021;--text-b:rgba(47,79,79,.85);--text-m:rgba(47,79,79,.45);
+      --border:rgba(26,48,33,.1);--nav-bg:#1A3021;
+    }
+    [data-theme="dark"] {
+      --bg:#0A1209;--bg-card:#111D14;--bg-subtle:#172419;
+      --text-h:#DDE8D5;--text-b:rgba(200,213,185,.8);--text-m:rgba(200,213,185,.38);
+      --border:rgba(200,213,185,.09);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text-b);
+      min-height:100vh;overflow-x:hidden;cursor:none;transition:background var(--T),color var(--T)}
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button{cursor:none;font-family:'Montserrat',sans-serif}
+    ul{list-style:none}
+
+    /* Cursor */
+    #cur{position:fixed;width:10px;height:10px;background:var(--g);border-radius:50%;
+      pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:multiply;
+      transition:width .3s,height .3s,background .3s}
+    #cur-r{position:fixed;width:36px;height:36px;border:1.5px solid var(--g);border-radius:50%;
+      pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.45;transition:width .4s,height .4s}
+    [data-theme="dark"] #cur{background:var(--sage);mix-blend-mode:normal}
+    [data-theme="dark"] #cur-r{border-color:var(--sage)}
+
+    /* Toast */
+    .toast-container{position:fixed;bottom:28px;right:28px;z-index:10000;display:flex;flex-direction:column;gap:10px}
+    .toast{padding:14px 20px;border-radius:10px;font-size:.75rem;font-weight:600;
+      background:var(--g);color:var(--sand);box-shadow:0 8px 32px rgba(0,0,0,.2);
+      transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+      max-width:300px;display:flex;align-items:center;gap:8px}
+    .toast.show{transform:translateX(0)}
+    .toast.error{background:#8B2020}
+    [data-theme="dark"] .toast{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .toast.error{background:#c0392b;color:#fff}
+
+    /* Size Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+      z-index:500;display:flex;align-items:flex-end;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity .3s}
+    .modal-overlay.open{opacity:1;pointer-events:auto}
+    .modal-sheet{width:100%;max-width:480px;background:var(--bg-card);border-radius:20px 20px 0 0;
+      padding:28px 28px 40px;transform:translateY(100%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+      transition:background var(--T)}
+    .modal-overlay.open .modal-sheet{transform:translateY(0)}
+    .modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);
+      margin:0 auto 20px}
+    .modal-product{display:flex;gap:14px;margin-bottom:20px;align-items:center}
+    .modal-img{width:64px;height:76px;border-radius:8px;overflow:hidden;background:var(--bg-subtle);flex-shrink:0}
+    .modal-img img{width:100%;height:100%;object-fit:cover}
+    .modal-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-h);margin-bottom:3px}
+    .modal-price{font-size:.75rem;color:var(--text-m);font-weight:500}
+    .modal-title{font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--text-m);margin-bottom:12px}
+    .modal-sizes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+    .modal-size-btn{min-width:48px;height:48px;padding:0 12px;border:1.5px solid var(--border);
+      border-radius:6px;background:var(--bg-card);color:var(--text-b);
+      font-family:'Montserrat',sans-serif;font-size:.75rem;font-weight:600;
+      cursor:none;transition:all .22s}
+    .modal-size-btn:hover:not(.sold){border-color:var(--g);color:var(--text-h)}
+    [data-theme="dark"] .modal-size-btn:hover:not(.sold){border-color:var(--sage)}
+    .modal-size-btn.active{background:var(--g);color:var(--sand);border-color:var(--g)}
+    [data-theme="dark"] .modal-size-btn.active{background:var(--sage);color:var(--g2);border-color:var(--sage)}
+    .modal-size-btn.sold{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+    .modal-add-btn{width:100%;padding:15px;background:var(--g);color:var(--sand);border:none;
+      border-radius:10px;font-family:'Montserrat',sans-serif;font-size:.7rem;font-weight:700;
+      letter-spacing:.2em;text-transform:uppercase;cursor:none;transition:all .3s}
+    .modal-add-btn:hover:not(:disabled){background:var(--wood);transform:translateY(-1px);
+      box-shadow:0 6px 20px rgba(160,82,45,.3)}
+    .modal-add-btn:disabled{opacity:.6}
+    [data-theme="dark"] .modal-add-btn{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .modal-add-btn:hover:not(:disabled){background:var(--wood);color:#fff}
+
+    /* Navbar */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;
+      background:var(--g2);display:flex;align-items:center;justify-content:space-between;
+      box-shadow:0 2px 32px rgba(0,0,0,.25)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo img{height:34px;width:auto;object-fit:contain}
+    .logo-txt{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;letter-spacing:.14em;color:var(--sand)}
+    .nav-links{display:flex;gap:36px}
+    .nav-links a{font-size:.67rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,245,220,.6);transition:color .25s}
+    .nav-links a:hover,.nav-links a.active-link{color:var(--sand)}
+    .nav-right{display:flex;align-items:center;gap:18px}
+    .nav-btn{background:none;border:none;padding:6px;color:rgba(245,245,220,.65);font-size:1rem;transition:color .25s;position:relative;text-decoration:none;display:flex;align-items:center}
+    .nav-btn:hover{color:var(--sand)}
+    .nav-badge{position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:var(--wood);color:#fff;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    .nav-badge.bump{transform:scale(1.4)}
+    .theme-btn{display:flex;align-items:center;gap:8px;background:rgba(245,245,220,.07);border:1px solid rgba(245,245,220,.18);border-radius:30px;padding:6px 12px 6px 9px;transition:background .3s}
+    .theme-btn:hover{background:rgba(245,245,220,.13)}
+    .theme-btn .icon{font-size:.82rem}
+    .theme-btn .lbl{font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,245,220,.6)}
+    .pip{width:28px;height:15px;border-radius:8px;background:rgba(245,245,220,.14);position:relative;flex-shrink:0;transition:background .35s}
+    [data-theme="dark"] .pip{background:var(--sage)}
+    .pip::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:rgba(245,245,220,.9);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    [data-theme="dark"] .pip::after{transform:translateX(13px);background:var(--g)}
+
+    /* Page header */
+    .page-header{padding-top:68px;background:var(--g);position:relative;overflow:hidden}
+    .page-header::before{content:'SHOP';position:absolute;right:-2%;top:50%;transform:translateY(-50%);font-family:'Playfair Display',serif;font-size:22vw;font-weight:900;color:rgba(255,255,255,.03);line-height:1;pointer-events:none;white-space:nowrap}
+    .page-header-inner{max-width:1400px;margin:0 auto;padding:52px 48px 48px;position:relative;z-index:1}
+    .breadcrumb{font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(200,213,185,.45);margin-bottom:18px}
+    .breadcrumb a{color:rgba(200,213,185,.45);transition:color .25s}
+    .breadcrumb a:hover{color:var(--sage)}
+    .page-title{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,4vw,3.8rem);font-weight:700;color:var(--sand);line-height:1.1;margin-bottom:6px}
+    .page-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;font-weight:300;color:rgba(245,245,220,.45)}
+    .page-count{font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(200,213,185,.4);margin-top:14px}
+
+    /* Search within shop */
+    .shop-search{margin-top:20px;display:flex;max-width:400px;border:1px solid rgba(200,213,185,.18);border-radius:30px;overflow:hidden;background:rgba(255,255,255,.06)}
+    .shop-search input{flex:1;padding:10px 18px;border:none;background:transparent;font-family:'Montserrat',sans-serif;font-size:.75rem;color:var(--sand);outline:none}
+    .shop-search input::placeholder{color:rgba(245,245,220,.3)}
+    .shop-search button{padding:10px 18px;background:rgba(255,255,255,.1);border:none;color:var(--sand);font-size:.8rem;cursor:none;transition:background .25s;border-left:1px solid rgba(200,213,185,.18)}
+    .shop-search button:hover{background:rgba(255,255,255,.18)}
+
+    /* Main layout */
+    .shop-layout{max-width:1400px;margin:0 auto;padding:40px 48px 80px;display:grid;grid-template-columns:240px 1fr;gap:40px}
+
+    /* Sidebar */
+    .sidebar{position:sticky;top:88px;height:fit-content}
+    .filter-group{margin-bottom:32px}
+    .filter-title{font-size:.64rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--text-m);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .filter-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    .filter-options{display:flex;flex-direction:column;gap:4px}
+    .filter-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:.73rem;font-weight:500;color:var(--text-b);background:transparent;border:none;text-align:left;width:100%;transition:background .25s,color .25s;cursor:none}
+    .filter-opt:hover{background:var(--bg-subtle);color:var(--text-h)}
+    .filter-opt.active{background:var(--g);color:var(--sand)}
+    [data-theme="dark"] .filter-opt.active{background:var(--sage);color:var(--g2)}
+    .filter-opt-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+    .filter-opt.active .filter-opt-dot{background:var(--sand)}
+    [data-theme="dark"] .filter-opt.active .filter-opt-dot{background:var(--g2)}
+    .filter-count{margin-left:auto;font-size:.6rem;color:var(--text-m)}
+    .sidebar-divider{height:1px;background:var(--border);margin:4px 0 24px}
+    .sort-select{width:100%;padding:10px 14px;border-radius:8px;background:var(--bg-card);border:1.5px solid var(--border);font-family:'Montserrat',sans-serif;font-size:.73rem;font-weight:500;color:var(--text-h);outline:none;cursor:none;transition:border-color .25s,background var(--T),color var(--T)}
+    .sort-select:focus{border-color:var(--g)}
+    [data-theme="dark"] .sort-select:focus{border-color:var(--sage)}
+    .clear-btn{width:100%;padding:10px;border-radius:8px;background:transparent;border:1.5px solid var(--border);font-size:.64rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-m);margin-top:8px;transition:all .3s;cursor:none}
+    .clear-btn:hover{border-color:var(--wood);color:var(--wood)}
+
+    /* Grid header */
+    .grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+    .grid-result-txt{font-size:.7rem;font-weight:500;letter-spacing:.1em;color:var(--text-m)}
+    .grid-result-txt strong{color:var(--text-h);font-weight:700}
+    .grid-view-btns{display:flex;gap:6px}
+    .grid-view-btn{width:34px;height:34px;border-radius:6px;background:transparent;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--text-m);transition:all .25s;cursor:none}
+    .grid-view-btn.active,.grid-view-btn:hover{background:var(--g);color:var(--sand);border-color:var(--g)}
+    [data-theme="dark"] .grid-view-btn.active{background:var(--sage);color:var(--g2);border-color:var(--sage)}
+
+    /* Products grid */
+    .products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .products-grid.two-col{grid-template-columns:repeat(2,1fr)}
+
+    /* Card */
+    .p-card{background:var(--bg-card);border-radius:14px;overflow:hidden;border:1px solid var(--border);transition:transform .45s var(--T),box-shadow .45s var(--T),border-color .3s;position:relative;cursor:none}
+    .p-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(26,48,33,.12);border-color:rgba(26,48,33,.18)}
+    [data-theme="dark"] .p-card:hover{box-shadow:0 20px 60px rgba(0,0,0,.35);border-color:rgba(200,213,185,.15)}
+    .p-card-img-wrap{position:relative;height:280px;overflow:hidden;background:var(--bg-subtle)}
+    .p-card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--T)}
+    .p-card:hover .p-card-img-wrap img{transform:scale(1.07)}
+    .p-badge{position:absolute;top:14px;left:14px;z-index:2;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:20px}
+    .p-badge.sale{background:var(--wood);color:#fff}
+    .p-badge.new{background:var(--g);color:var(--sand)}
+    .p-badge.limited{background:#6B4E3D;color:#fff}
+    .p-badge.best{background:var(--sage);color:var(--g)}
+    .p-wish{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.88);backdrop-filter:blur(6px);border:none;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--g);opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .3s,background .25s,color .25s}
+    [data-theme="dark"] .p-wish{background:rgba(17,29,20,.88);color:var(--sage)}
+    .p-card:hover .p-wish{opacity:1;transform:translateY(0)}
+    .p-wish:hover,.p-wish.saved{background:var(--wood);color:#fff}
+    .p-wish.saved{opacity:1;transform:translateY(0)}
+    .p-quick{position:absolute;bottom:0;left:0;right:0;z-index:2;background:rgba(26,48,33,.88);backdrop-filter:blur(6px);padding:13px;text-align:center;font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--sand);transform:translateY(100%);transition:transform .35s var(--T)}
+    .p-card:hover .p-quick{transform:translateY(0)}
+    .p-card-body{padding:18px 20px 20px}
+    .p-card-collection{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--wood);margin-bottom:5px}
+    .p-card-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text-h);margin-bottom:4px;line-height:1.25;transition:color var(--T)}
+    .p-card:hover .p-card-name{color:var(--g)}
+    [data-theme="dark"] .p-card:hover .p-card-name{color:var(--sage)}
+    .p-card-sub{font-size:.68rem;color:var(--text-m);margin-bottom:12px;line-height:1.5;letter-spacing:.02em}
+    .p-card-rating{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+    .stars{color:var(--wood);font-size:.75rem;letter-spacing:1px}
+    .rev-count{font-size:.6rem;color:var(--text-m);font-weight:500}
+    .p-card-price{display:flex;align-items:center;justify-content:space-between}
+    .price-row{display:flex;align-items:baseline;gap:8px}
+    .p-price{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--text-h)}
+    .p-price-orig{font-size:.8rem;color:var(--text-m);text-decoration:line-through}
+    .p-discount{font-size:.58rem;font-weight:700;letter-spacing:.08em;background:rgba(160,82,45,.12);color:var(--wood);padding:2px 8px;border-radius:10px}
+    .p-cart-btn{width:34px;height:34px;border-radius:50%;background:var(--g);color:var(--sand);border:none;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .25s,transform .25s;flex-shrink:0}
+    .p-cart-btn:hover{background:var(--wood);transform:scale(1.1)}
+    [data-theme="dark"] .p-cart-btn{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .p-cart-btn:hover{background:var(--wood);color:#fff}
+    .p-sizes{display:flex;gap:4px;margin-top:12px;flex-wrap:wrap}
+    .p-size-tag{font-size:.6rem;font-weight:600;padding:3px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-m)}
+    .p-size-tag.out{opacity:.35;text-decoration:line-through}
+
+    /* Empty state */
+    .empty-state{grid-column:1/-1;text-align:center;padding:80px 20px}
+    .empty-icon{font-size:3rem;margin-bottom:16px}
+    .empty-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--text-h);margin-bottom:8px}
+    .empty-sub{font-size:.82rem;color:var(--text-m)}
+
+    /* Reveal animations */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s var(--T),transform .7s var(--T)}
+    .reveal.in{opacity:1;transform:none}
+    .delay-1{transition-delay:.08s}.delay-2{transition-delay:.16s}.delay-3{transition-delay:.24s}
+    .delay-4{transition-delay:.32s}.delay-5{transition-delay:.40s}.delay-6{transition-delay:.48s}
+
+    /* Responsive */
+    @media(max-width:1100px){.shop-layout{grid-template-columns:200px 1fr;gap:28px;padding:32px 28px 60px}.products-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){nav{padding:0 18px}.nav-links{display:none}.shop-layout{grid-template-columns:1fr;padding:24px 18px 48px}.sidebar{position:relative;top:0}.filter-options{flex-direction:row;flex-wrap:wrap}.filter-opt{width:auto}.page-header-inner{padding:40px 18px 36px}}
+    @media(max-width:540px){.products-grid,.products-grid.two-col{grid-template-columns:1fr}.p-card-img-wrap{height:240px}}
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SIZE MODAL -->
+<div class="modal-overlay" id="sizeModal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-product">
+      <div class="modal-img"><img id="modalImg" src="" alt="" /></div>
+      <div>
+        <div class="modal-name" id="modalName">—</div>
+        <div class="modal-price" id="modalPrice">—</div>
+      </div>
+    </div>
+    <div class="modal-title" data-i18n="modal_select">Select Size</div>
+    <div class="modal-sizes" id="modalSizes"></div>
+    <button class="modal-add-btn" id="modalAddBtn" onclick="confirmAddToCart()" data-i18n="modal_confirm">Add to Cart</button>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="/static/logo1.png" alt="Foresta"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+    <span class="logo-txt" style="display:none">FORESTA</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/products" class="active-link">Shop All</a></li>
+    <li><a href="/#collections">Collections</a></li>
+    <li><a href="/#sustainability">Why Foresta</a></li>
+    <li><a href="#">Journal</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/search" class="nav-btn" title="Search">⌕</a>
+    <a href="/wishlist" class="nav-btn" title="Wishlist" style="position:relative">
+      ♡<span class="nav-badge" id="wishBadge" {% if wishlist_count == 0 %}style="display:none"{% endif %}>{{ wishlist_count }}</span>
+    </a>
+    <a href="/cart" class="nav-btn" title="Cart" style="position:relative">
+      ⊕<span class="nav-badge" id="cartBadge" {% if cart_count == 0 %}style="display:none"{% endif %}>{{ cart_count }}</span>
+    </a>
+    <button class="lang-toggle" onclick="toggleLanguage()">عربي</button>
+    <button class="theme-btn" id="themeToggle">
+      <span class="icon" id="themeIcon">☀️</span>
+      <span class="lbl" id="themeLbl">Light</span>
+      <div class="pip"></div>
+    </button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="/">Home</a> / <span style="color:var(--sage)">Shop All</span></div>
+    <h1 class="page-title" data-i18n="shop_title">The Collection</h1>
+    <p class="page-subtitle" data-i18n="shop_sub">Slow fashion, honestly made.</p>
+    <div class="page-count">{{ total }} piece{% if total != 1 %}s{% endif %} available</div>
+    <form class="shop-search" action="/products" method="GET">
+      {% if active_category != 'all' %}<input type="hidden" name="category" value="{{ active_category }}" />{% endif %}
+      {% if active_collection != 'all' %}<input type="hidden" name="collection" value="{{ active_collection }}" />{% endif %}
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Search the collection…" />
+      <button type="submit">⌕</button>
+    </form>
+  </div>
+</div>
+
+<!-- SHOP LAYOUT -->
+<div class="shop-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="filter-group">
+      <div class="filter-title">Category</div>
+      <div class="filter-options">
+        {% set _ck = {'all':'filter_all','outerwear':'filter_outer','tops':'filter_tops','bottoms':'filter_bottoms','sets':'filter_sets'} %}
+        {% for cat in categories %}
+        <a href="{{ url_for('products', category=cat.slug, collection=active_collection, sort=active_sort) }}" style="text-decoration:none">
+          <button class="filter-opt {% if active_category == cat.slug %}active{% endif %}"
+                  data-i18n="{{ _ck.get(cat.slug, '') }}">
+            <span class="filter-opt-dot"></span>{{ cat.label }}
+          </button>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="filter-group">
+      <div class="filter-title">Collection</div>
+      <div class="filter-options">
+        <a href="{{ url_for('products', category=active_category, collection='all', sort=active_sort) }}" style="text-decoration:none">
+          <button class="filter-opt {% if active_collection == 'all' %}active{% endif %}">
+            <span class="filter-opt-dot"></span>All Collections
+          </button>
+        </a>
+        {% for col in collections %}
+        <a href="{{ url_for('products', category=active_category, collection=col, sort=active_sort) }}" style="text-decoration:none">
+          <button class="filter-opt {% if active_collection == col %}active{% endif %}">
+            <span class="filter-opt-dot"></span>{{ col }}
+          </button>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="filter-group">
+      <div class="filter-title">Sort By</div>
+      <form method="GET" action="{{ url_for('products') }}" id="sortForm">
+        <input type="hidden" name="category" value="{{ active_category }}" />
+        <input type="hidden" name="collection" value="{{ active_collection }}" />
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}" />{% endif %}
+        <select class="sort-select" name="sort" onchange="document.getElementById('sortForm').submit()">
+          <option value="default"    {% if active_sort=='default'    %}selected{% endif %}>Featured</option>
+          <option value="price-asc"  {% if active_sort=='price-asc'  %}selected{% endif %}>Price: Low → High</option>
+          <option value="price-desc" {% if active_sort=='price-desc' %}selected{% endif %}>Price: High → Low</option>
+          <option value="rating"     {% if active_sort=='rating'     %}selected{% endif %}>Top Rated</option>
+          <option value="discount"   {% if active_sort=='discount'   %}selected{% endif %}>Biggest Discount</option>
+        </select>
+      </form>
+    </div>
+
+    {% if active_category != 'all' or active_collection != 'all' or active_sort != 'default' or search_query %}
+    <a href="{{ url_for('products') }}" style="text-decoration:none">
+      <button class="clear-btn">✕ Clear All Filters</button>
+    </a>
+    {% endif %}
+  </aside>
+
+  <!-- PRODUCTS AREA -->
+  <main>
+    <div class="grid-header">
+      <div class="grid-result-txt">
+        Showing <strong>{{ total }}</strong> result{% if total != 1 %}s{% endif %}
+        {% if active_category != 'all' %} in <strong>{{ active_category|title }}</strong>{% endif %}
+        {% if active_collection != 'all' %} · <strong>{{ active_collection }}</strong>{% endif %}
+        {% if search_query %} · "<strong>{{ search_query }}</strong>"{% endif %}
+      </div>
+      <div class="grid-view-btns">
+        <button class="grid-view-btn active" id="btn3col" onclick="setGrid(3)" title="3 columns">⊞</button>
+        <button class="grid-view-btn" id="btn2col" onclick="setGrid(2)" title="2 columns">▭</button>
+      </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+      {% if products %}
+        {% for product in products %}
+        {% set delay_class = ['','delay-1','delay-2','delay-3','delay-4','delay-5'][loop.index0 % 6] %}
+        <div class="p-card reveal {{ delay_class }}">
+
+          <!-- Image -->
+          <a href="{{ url_for('product_detail', slug=product.slug) }}" style="display:block">
+            <div class="p-card-img-wrap">
+              <img src="{{ product.cover }}" alt="{{ product.name }}" loading="lazy" />
+              {% if product.badge %}
+                {% if product.discount > 0 %}<span class="p-badge sale">−{{ product.discount }}%</span>
+                {% elif 'New' in product.badge %}<span class="p-badge new">{{ product.badge }}</span>
+                {% elif 'Limited' in product.badge %}<span class="p-badge limited">{{ product.badge }}</span>
+                {% else %}<span class="p-badge best">{{ product.badge }}</span>
+                {% endif %}
+              {% endif %}
+              <div class="p-quick" data-i18n="product_add">View Product →</div>
+            </div>
+          </a>
+
+          <!-- Wishlist btn (outside link) -->
+          <button class="p-wish {% if product.slug in wishlist_slugs %}saved{% endif %}"
+            title="{% if product.slug in wishlist_slugs %}Saved{% else %}Save to Wishlist{% endif %}"
+            onclick="quickWishlist(this, '{{ product.slug }}')">
+            {{ '♥' if product.slug in wishlist_slugs else '♡' }}
+          </button>
+
+          <!-- Body -->
+          <div class="p-card-body">
+            <div class="p-card-collection">{{ product.collection }}</div>
+            <a href="{{ url_for('product_detail', slug=product.slug) }}" style="text-decoration:none">
+              <div class="p-card-name">{{ product.name }}</div>
+            </a>
+            <div class="p-card-sub">{{ product.subtitle }}</div>
+            <div class="p-card-rating">
+              <span class="stars">★★★★★</span>
+              <span class="rev-count">{{ product.rating }} · {{ product.reviews }} reviews</span>
+            </div>
+            <div class="p-card-price">
+              <div class="price-row">
+                <span class="p-price">{{ product.currency }}{{ product.price }}</span>
+                {% if product.original_price > product.price %}
+                <span class="p-price-orig">{{ product.currency }}{{ product.original_price }}</span>
+                <span class="p-discount">−{{ product.discount }}%</span>
+                {% endif %}
+              </div>
+              <button class="p-cart-btn" title="Quick Add to Cart"
+                onclick="openSizeModal('{{ product.slug }}', '{{ product.name }}', '{{ product.currency }}{{ product.price }}', '{{ product.cover }}', {{ product.sizes | tojson }})">
+                +
+              </button>
+            </div>
+            <div class="p-sizes">
+              {% for size in product.sizes %}
+              <span class="p-size-tag {% if not size.available %}out{% endif %}">{{ size.label }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">🌿</div>
+          <div class="empty-title">Nothing here yet.</div>
+          <div class="empty-sub">Try adjusting your filters to discover more pieces.</div>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script src="/static/i18n.js"></script>
+<script>
+  // Cursor
+  const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop)})();
+
+  // Theme
+  const html=document.documentElement;
+  html.dataset.theme=localStorage.getItem('forestaTheme')||'light';
+  function syncTheme(){const d=html.dataset.theme==='dark';document.getElementById('themeIcon').textContent=d?'🌙':'☀️';document.getElementById('themeLbl').textContent=d?'Dark':'Light';}
+  syncTheme();
+  document.getElementById('themeToggle').addEventListener('click',()=>{html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';localStorage.setItem('forestaTheme',html.dataset.theme);syncTheme();});
+
+  // Toast
+  function showToast(msg,type='success'){
+    const tc=document.getElementById('toastContainer');
+    const t=document.createElement('div');
+    t.className=`toast ${type}`;
+    t.innerHTML=`<span>${type==='error'?'✕':'✓'}</span><span>${msg}</span>`;
+    tc.appendChild(t);setTimeout(()=>t.classList.add('show'),50);
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400)},3200);
+  }
+
+  // Badge updaters
+  function updateCartBadge(count){
+    const b=document.getElementById('cartBadge');
+    if(!b)return;
+    b.textContent=count;b.style.display=count>0?'flex':'none';
+    b.classList.add('bump');setTimeout(()=>b.classList.remove('bump'),300);
+  }
+  function updateWishBadge(count){
+    const b=document.getElementById('wishBadge');
+    if(!b)return;
+    b.textContent=count;b.style.display=count>0?'flex':'none';
+  }
+
+  // Scroll reveal
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
+  },{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  // Grid toggle
+  function setGrid(n){
+    document.getElementById('productsGrid').classList.toggle('two-col',n===2);
+    document.getElementById('btn3col').classList.toggle('active',n===3);
+    document.getElementById('btn2col').classList.toggle('active',n===2);
+  }
+
+  // ─── Quick Wishlist ───────────────────────────────────────
+  async function quickWishlist(btn, slug){
+    try{
+      const r=await fetch('/wishlist/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug})});
+      const d=await r.json();
+      if(d.success){
+        btn.textContent=d.saved?'♥':'♡';
+        btn.classList.toggle('saved',d.saved);
+        btn.title=d.saved?'Saved':'Save to Wishlist';
+        showToast(d.message,'success');
+        updateWishBadge(d.wishlist_count);
+      }
+    }catch(e){showToast('Network error','error');}
+  }
+
+  // ─── Size Modal ───────────────────────────────────────────
+  let modalSlug='', modalSelectedSize='';
+
+  function openSizeModal(slug, name, price, cover, sizes){
+    modalSlug=slug; modalSelectedSize='';
+    document.getElementById('modalName').textContent=name;
+    document.getElementById('modalPrice').textContent=price;
+    document.getElementById('modalImg').src=cover;
+    document.getElementById('modalImg').alt=name;
+
+    const container=document.getElementById('modalSizes');
+    container.innerHTML='';
+    sizes.forEach(s=>{
+      const btn=document.createElement('button');
+      btn.className='modal-size-btn'+(s.available?'':' sold');
+      btn.textContent=s.label;
+      btn.disabled=!s.available;
+      btn.addEventListener('click',()=>{
+        container.querySelectorAll('.modal-size-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        modalSelectedSize=s.label;
+      });
+      container.appendChild(btn);
+    });
+
+    document.getElementById('modalAddBtn').textContent='Add to Cart';
+    document.getElementById('modalAddBtn').disabled=false;
+    document.getElementById('sizeModal').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeModal(e){
+    if(e.target===document.getElementById('sizeModal')||e===null){
+      document.getElementById('sizeModal').classList.remove('open');
+      document.body.style.overflow='';
+    }
+  }
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal(null);});
+
+  async function confirmAddToCart(){
+    if(!modalSelectedSize){showToast('Please select a size','error');return;}
+    const btn=document.getElementById('modalAddBtn');
+    btn.disabled=true;btn.textContent='Adding…';
+    try{
+      const r=await fetch('/cart/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:modalSlug,size:modalSelectedSize,quantity:1})});
+      const d=await r.json();
+      if(d.success){
+        showToast(d.message,'success');
+        updateCartBadge(d.cart_count);
+        btn.textContent='✓ Added!';
+        setTimeout(()=>{closeModal(null);},900);
+      }else{
+        showToast(d.error||'Error adding to cart','error');
+        btn.disabled=false;btn.textContent='Add to Cart';
+      }
+    }catch(e){showToast('Network error','error');btn.disabled=false;btn.textContent='Add to Cart';}
+  }
+</script>
+</body>
+</html>

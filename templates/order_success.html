@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — Foresta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/rtl.css"/>
+  <style>
+    :root {
+      --g:#1A3021;--g2:#0D1A12;--sand:#F5F5DC;--wood:#A0522D;
+      --sage:#C8D5B9;--T:.45s cubic-bezier(.4,0,.2,1);
+      --bg:#FAFAF5;--bg-card:#FFFFFF;--bg-sub:#E8EDE4;
+      --txt-h:#1A3021;--txt-b:rgba(47,79,79,.85);--txt-m:rgba(47,79,79,.5);
+      --border:rgba(26,48,33,.1);--shadow:0 4px 32px rgba(26,48,33,.08);
+    }
+    [data-theme="dark"] {
+      --bg:#0A1209;--bg-card:#111D14;--bg-sub:#172419;
+      --txt-h:#DDE8D5;--txt-b:rgba(200,213,185,.8);--txt-m:rgba(200,213,185,.38);
+      --border:rgba(200,213,185,.09);--shadow:0 4px 32px rgba(0,0,0,.35);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--txt-b);
+      min-height:100vh;overflow-x:hidden;cursor:none;transition:background var(--T),color var(--T)}
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button{cursor:none;font-family:'Montserrat',sans-serif}
+
+    #cur{position:fixed;width:10px;height:10px;background:var(--g);border-radius:50%;
+      pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:multiply}
+    #cur-r{position:fixed;width:36px;height:36px;border:1.5px solid var(--g);border-radius:50%;
+      pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.45}
+    [data-theme="dark"] #cur{background:var(--sage);mix-blend-mode:normal}
+    [data-theme="dark"] #cur-r{border-color:var(--sage)}
+
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;
+      background:var(--g2);display:flex;align-items:center;justify-content:space-between;
+      box-shadow:0 2px 32px rgba(0,0,0,.25)}
+    .nav-logo{display:flex;align-items:center;gap:10px}
+    .nav-logo img{height:34px;width:auto;object-fit:contain}
+    .logo-txt{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;letter-spacing:.14em;color:var(--sand)}
+    .nav-links{display:flex;gap:36px}
+    .nav-links a{font-size:.67rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,245,220,.6);transition:color .25s}
+    .nav-links a:hover{color:var(--sand)}
+    .nav-right{display:flex;align-items:center;gap:18px}
+    .theme-btn{display:flex;align-items:center;gap:8px;background:rgba(245,245,220,.07);
+      border:1px solid rgba(245,245,220,.18);border-radius:30px;padding:6px 12px 6px 9px;transition:background .3s}
+    .theme-btn:hover{background:rgba(245,245,220,.13)}
+    .theme-btn .icon{font-size:.82rem}
+    .theme-btn .lbl{font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,245,220,.6)}
+    .pip{width:28px;height:15px;border-radius:8px;background:rgba(245,245,220,.14);position:relative;flex-shrink:0;transition:background .35s}
+    [data-theme="dark"] .pip{background:var(--sage)}
+    .pip::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:rgba(245,245,220,.9);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    [data-theme="dark"] .pip::after{transform:translateX(13px);background:var(--g)}
+
+    /* ─── SUCCESS PAGE ─── */
+    .success-wrap{padding-top:68px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:80px}
+
+    /* Confetti particles */
+    .confetti-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;overflow:hidden}
+    .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall linear both}
+    @keyframes confettiFall{
+      0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+      100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+    }
+
+    /* Check animation */
+    .success-icon{width:88px;height:88px;border-radius:50%;background:var(--g);
+      display:flex;align-items:center;justify-content:center;margin:0 auto 28px;
+      animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .3s both}
+    [data-theme="dark"] .success-icon{background:var(--sage)}
+    .success-icon svg{width:40px;height:40px;stroke-dasharray:60;stroke-dashoffset:60;
+      animation:drawCheck .5s ease .9s forwards}
+    @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    @keyframes drawCheck{to{stroke-dashoffset:0}}
+
+    .success-label{font-size:.65rem;font-weight:700;letter-spacing:.22em;
+      text-transform:uppercase;color:var(--wood);margin-bottom:12px;
+      animation:fadeUp .5s .5s both}
+    .success-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);
+      font-weight:700;color:var(--txt-h);margin-bottom:10px;
+      animation:fadeUp .5s .6s both}
+    .success-sub{font-family:'Cormorant Garamond',serif;font-style:italic;
+      font-size:1.1rem;color:var(--txt-m);margin-bottom:40px;
+      animation:fadeUp .5s .7s both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+    /* Order card */
+    .order-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+      padding:36px;max-width:640px;width:100%;box-shadow:var(--shadow);
+      animation:fadeUp .5s .8s both;transition:background var(--T),border-color var(--T)}
+
+    .order-meta{display:flex;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+    .meta-item{flex:1;min-width:120px;padding:16px;background:var(--bg-sub);border-radius:12px;
+      text-align:center;transition:background var(--T)}
+    .meta-label{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--txt-m);margin-bottom:6px}
+    .meta-val{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--txt-h)}
+
+    .order-divider{height:1px;background:var(--border);margin:24px 0}
+
+    .order-items-title{font-size:.62rem;font-weight:700;letter-spacing:.18em;
+      text-transform:uppercase;color:var(--txt-m);margin-bottom:14px}
+    .order-item-row{display:flex;align-items:center;gap:12px;padding:10px 0;
+      border-bottom:1px solid var(--border)}
+    .order-item-row:last-child{border-bottom:none}
+    .oi-img{width:48px;height:58px;border-radius:6px;overflow:hidden;background:var(--bg-sub);flex-shrink:0}
+    .oi-img img{width:100%;height:100%;object-fit:cover}
+    .oi-info{flex:1}
+    .oi-name{font-size:.75rem;font-weight:600;color:var(--txt-h);margin-bottom:2px}
+    .oi-meta{font-size:.6rem;color:var(--txt-m)}
+    .oi-price{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--txt-h)}
+
+    .order-total-row{display:flex;justify-content:space-between;align-items:baseline;
+      padding-top:16px;border-top:2px solid var(--border);margin-top:8px}
+    .ot-label{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-h)}
+    .ot-val{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--txt-h)}
+
+    /* Eco pledge */
+    .eco-pledge{display:flex;gap:16px;margin-top:24px;padding:16px;
+      background:rgba(26,48,33,.05);border-radius:12px;border-left:4px solid var(--g)}
+    [data-theme="dark"] .eco-pledge{background:rgba(200,213,185,.05);border-left-color:var(--sage)}
+    .eco-pledge-icon{font-size:1.5rem}
+    .eco-pledge-txt{font-size:.7rem;color:var(--txt-m);line-height:1.7}
+    .eco-pledge-txt strong{color:var(--txt-h);display:block;margin-bottom:3px}
+
+    /* Delivery timeline */
+    .delivery-timeline{display:flex;align-items:center;gap:0;margin-top:24px}
+    .tl-step{flex:1;text-align:center}
+    .tl-dot{width:12px;height:12px;border-radius:50%;background:var(--g);margin:0 auto 6px;
+      position:relative}
+    [data-theme="dark"] .tl-dot{background:var(--sage)}
+    .tl-dot.done{background:var(--g)}
+    .tl-dot.pending{background:var(--border)}
+    .tl-label{font-size:.58rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-m)}
+    .tl-sub{font-size:.55rem;color:var(--txt-m);margin-top:2px}
+    .tl-line{flex:1;height:2px;background:var(--border);max-width:40px}
+    .tl-line.done{background:var(--g)}
+    [data-theme="dark"] .tl-line.done{background:var(--sage)}
+
+    /* CTA buttons */
+    .cta-row{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+    .btn-primary{flex:1;min-width:160px;padding:14px;background:var(--g);color:var(--sand);border:none;
+      border-radius:10px;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+      text-align:center;transition:all .3s;display:block}
+    .btn-primary:hover{background:var(--wood);transform:translateY(-1px);box-shadow:0 6px 20px rgba(160,82,45,.3)}
+    [data-theme="dark"] .btn-primary{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .btn-primary:hover{background:var(--wood);color:#fff}
+    .btn-secondary{flex:1;min-width:160px;padding:13px;background:transparent;color:var(--txt-h);
+      border:1.5px solid var(--border);border-radius:10px;font-size:.68rem;font-weight:600;
+      letter-spacing:.16em;text-transform:uppercase;text-align:center;transition:all .3s;display:block}
+    .btn-secondary:hover{border-color:var(--g);color:var(--g)}
+    [data-theme="dark"] .btn-secondary:hover{border-color:var(--sage);color:var(--sage)}
+
+    @media(max-width:640px){
+      nav{padding:0 18px}
+      .nav-links{display:none}
+      .success-wrap{padding:88px 18px 60px}
+      .order-card{padding:24px}
+      .order-meta{gap:12px}
+    }
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="/static/logo1.png" alt="Foresta"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+    <span class="logo-txt" style="display:none">FORESTA</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/products" data-i18n="nav_shop">Shop All</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="lang-toggle" onclick="toggleLanguage()">عربي</button>
+    <button class="theme-btn" id="themeToggle">
+      <span class="icon" id="themeIcon">☀️</span>
+      <span class="lbl" id="themeLbl">Light</span>
+      <div class="pip"></div>
+    </button>
+  </div>
+</nav>
+
+<!-- SUCCESS -->
+<div class="success-wrap">
+  <div style="text-align:center;max-width:640px;width:100%;padding:0 18px">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#F5F5DC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="success-label" data-i18n="os_confirmed">Order Confirmed</div>
+    <h1 class="success-title"><span data-i18n="os_thank">Thank you,</span> {{ order.name.split()[0] }}.</h1>
+    <p class="success-sub" data-i18n="os_sub">Your order is confirmed and being prepared with care.</p>
+  </div>
+
+  <div class="order-card">
+    <!-- Meta -->
+    <div class="order-meta">
+      <div class="meta-item">
+        <div class="meta-label">Order ID</div>
+        <div class="meta-val">#{{ order.order_id }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Order Date</div>
+        <div class="meta-val">{{ order.date }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Est. Delivery</div>
+        <div class="meta-val">{{ order.estimated_delivery }}</div>
+      </div>
+    </div>
+
+    <!-- Delivery address -->
+    <div style="font-size:.7rem;color:var(--txt-m);padding:12px 16px;background:var(--bg-sub);border-radius:10px;line-height:1.7;transition:background var(--T)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--wood);margin-bottom:6px">Shipping To</div>
+      <strong style="color:var(--txt-h)">{{ order.name }}</strong><br>
+      {{ order.address }}, {{ order.city }}<br>
+      {{ order.country }}
+    </div>
+
+    <div class="order-divider"></div>
+
+    <!-- Items -->
+    <div class="order-items-title">Items in this Order</div>
+    {% for item in order.items %}
+    <div class="order-item-row">
+      <div class="oi-img">
+        <img src="{{ item.product.cover }}" alt="{{ item.product.name }}" />
+      </div>
+      <div class="oi-info">
+        <div class="oi-name">{{ item.product.name }}</div>
+        <div class="oi-meta">Size {{ item.size }} · Qty {{ item.quantity }}</div>
+      </div>
+      <div class="oi-price">${{ item.line_total }}</div>
+    </div>
+    {% endfor %}
+
+    <div class="order-total-row">
+      <span class="ot-label">Order Total</span>
+      <span class="ot-val">${{ order.total }}</span>
+    </div>
+
+    <!-- Delivery timeline -->
+    <div class="delivery-timeline">
+      <div class="tl-step">
+        <div class="tl-dot done"></div>
+        <div class="tl-label">Confirmed</div>
+        <div class="tl-sub">Just now</div>
+      </div>
+      <div class="tl-line done"></div>
+      <div class="tl-step">
+        <div class="tl-dot pending"></div>
+        <div class="tl-label">Processing</div>
+        <div class="tl-sub">1–2 days</div>
+      </div>
+      <div class="tl-line"></div>
+      <div class="tl-step">
+        <div class="tl-dot pending"></div>
+        <div class="tl-label">Shipped</div>
+        <div class="tl-sub">2–3 days</div>
+      </div>
+      <div class="tl-line"></div>
+      <div class="tl-step">
+        <div class="tl-dot pending"></div>
+        <div class="tl-label">Delivered</div>
+        <div class="tl-sub">{{ order.estimated_delivery }}</div>
+      </div>
+    </div>
+
+    <!-- Thank you note -->
+    <div class="eco-pledge">
+      <div class="eco-pledge-icon">🎨</div>
+      <div class="eco-pledge-txt">
+        <strong>Thank you for wearing the wild.</strong>
+        Your unique Foresta piece is being carefully packed and will be on its way to you shortly. We hope it turns heads wherever you go.
+      </div>
+    </div>
+
+    <!-- CTAs -->
+    <div class="cta-row">
+      <a href="/products" class="btn-primary">Continue Shopping</a>
+      <a href="/" class="btn-secondary">Back to Home</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Cursor
+  const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop)})();
+
+  // Theme
+  const html=document.documentElement;
+  html.dataset.theme=localStorage.getItem('forestaTheme')||'light';
+  function syncUI(){const d=html.dataset.theme==='dark';document.getElementById('themeIcon').textContent=d?'🌙':'☀️';document.getElementById('themeLbl').textContent=d?'Dark':'Light';}
+  syncUI();
+  document.getElementById('themeToggle').addEventListener('click',()=>{
+    html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';
+    localStorage.setItem('forestaTheme',html.dataset.theme);syncUI();
+  });
+
+  // Confetti
+  const colors=['#1A3021','#C8D5B9','#A0522D','#F5F5DC','#E8EDE4'];
+  const wrap=document.getElementById('confettiWrap');
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.cssText=`
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${2+Math.random()*3}s;
+      animation-delay:${Math.random()*1.5}s;
+    `;
+    wrap.appendChild(p);
+  }
+  setTimeout(()=>wrap.remove(),6000);
+</script>
+<script src="/static/i18n.js"></script>
+</body>
+</html>

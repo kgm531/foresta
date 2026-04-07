@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>404 — Foresta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/rtl.css"/>
+  <style>
+    :root{--g:#1A3021;--sand:#F5F5DC;--sage:#C8D5B9;--wood:#A0522D}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Montserrat',sans-serif;background:#0A1209;color:var(--sage);
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;text-align:center;padding:40px}
+    .num{font-family:'Playfair Display',serif;font-size:clamp(7rem,18vw,14rem);
+      font-weight:700;color:rgba(200,213,185,.07);line-height:1;margin-bottom:-20px}
+    h1{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.2rem);
+      color:var(--sand);margin-bottom:10px}
+    p{font-size:.82rem;color:rgba(200,213,185,.45);margin-bottom:36px}
+    a{display:inline-block;padding:14px 36px;border-radius:30px;
+      background:var(--sand);color:var(--g);font-size:.68rem;font-weight:700;
+      letter-spacing:.2em;text-transform:uppercase;text-decoration:none;transition:background .3s}
+    a:hover{background:var(--sage)}
+  </style>
+</head>
+<body>
+  <div class="num">404</div>
+  <h1>Lost in the Forest</h1>
+  <p>The page you're looking for has wandered off the path.</p>
+  <a href="/" data-i18n="nav_home">Return Home →</a>
+<script src="/static/i18n.js"></script>
+</body>
+</html>

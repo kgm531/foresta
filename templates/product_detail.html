@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ product.name }} — Foresta</title>
+  <meta name="description" content="{{ product.subtitle }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/rtl.css"/>
+
+  <style>
+    :root {
+      --g:#1A3021;--g2:#0D1A12;--sand:#F5F5DC;--wood:#A0522D;
+      --sage:#C8D5B9;--moss:#E8EDE4;--T:.45s cubic-bezier(.4,0,.2,1);--r:4px;
+      --bg:#FAFAF5;--bg-card:#FFFFFF;--bg-sub:#E8EDE4;
+      --txt-h:#1A3021;--txt-b:rgba(47,79,79,.85);--txt-m:rgba(47,79,79,.5);
+      --border:rgba(26,48,33,.1);--shadow:0 4px 32px rgba(26,48,33,.08);
+      --shadow-md:0 12px 48px rgba(26,48,33,.14);
+    }
+    [data-theme="dark"]{
+      --bg:#0A1209;--bg-card:#111D14;--bg-sub:#172419;
+      --txt-h:#DDE8D5;--txt-b:rgba(200,213,185,.8);--txt-m:rgba(200,213,185,.38);
+      --border:rgba(200,213,185,.09);--shadow:0 4px 32px rgba(0,0,0,.35);
+      --shadow-md:0 12px 48px rgba(0,0,0,.45);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--txt-b);
+      min-height:100vh;overflow-x:hidden;cursor:none;transition:background var(--T),color var(--T)}
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button{cursor:none;font-family:'Montserrat',sans-serif}
+    ul{list-style:none}
+
+    /* Cursor */
+    #cur{position:fixed;width:10px;height:10px;background:var(--g);border-radius:50%;
+      pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:multiply;
+      transition:width .3s,height .3s,background .3s}
+    #cur-r{position:fixed;width:36px;height:36px;border:1.5px solid var(--g);border-radius:50%;
+      pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.45}
+    [data-theme="dark"] #cur{background:var(--sage);mix-blend-mode:normal}
+    [data-theme="dark"] #cur-r{border-color:var(--sage)}
+
+    /* Toast */
+    .toast-container{position:fixed;bottom:28px;right:28px;z-index:10000;
+      display:flex;flex-direction:column;gap:10px}
+    .toast{padding:14px 20px;border-radius:10px;font-size:.75rem;font-weight:600;
+      background:var(--g);color:var(--sand);box-shadow:0 8px 32px rgba(0,0,0,.2);
+      transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+      max-width:300px;display:flex;align-items:center;gap:8px}
+    .toast.show{transform:translateX(0)}
+    .toast.error{background:#8B2020}
+    [data-theme="dark"] .toast{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .toast.error{background:#c0392b;color:#fff}
+
+    /* Nav */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;
+      background:var(--g2);display:flex;align-items:center;justify-content:space-between;
+      box-shadow:0 2px 32px rgba(0,0,0,.25)}
+    .nav-logo{display:flex;align-items:center;gap:10px}
+    .nav-logo img{height:34px;width:auto;object-fit:contain}
+    .logo-txt{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;
+      letter-spacing:.14em;color:var(--sand)}
+    .nav-links{display:flex;gap:36px}
+    .nav-links a{font-size:.67rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+      color:rgba(245,245,220,.6);transition:color .25s}
+    .nav-links a:hover{color:var(--sand)}
+    .nav-right{display:flex;align-items:center;gap:18px}
+    .nav-btn{background:none;border:none;padding:6px;color:rgba(245,245,220,.65);
+      font-size:1rem;transition:color .25s;position:relative;text-decoration:none;
+      display:flex;align-items:center}
+    .nav-btn:hover{color:var(--sand)}
+    .nav-badge{position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;
+      background:var(--wood);color:#fff;font-size:.5rem;font-weight:700;
+      display:flex;align-items:center;justify-content:center;padding:0 3px;
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    .nav-badge.bump{transform:scale(1.4)}
+    .theme-btn{display:flex;align-items:center;gap:8px;background:rgba(245,245,220,.07);
+      border:1px solid rgba(245,245,220,.18);border-radius:30px;padding:6px 12px 6px 9px;
+      transition:background .3s}
+    .theme-btn:hover{background:rgba(245,245,220,.13)}
+    .theme-btn .icon{font-size:.82rem}
+    .theme-btn .lbl{font-size:.6rem;font-weight:700;letter-spacing:.18em;
+      text-transform:uppercase;color:rgba(245,245,220,.6)}
+    .pip{width:28px;height:15px;border-radius:8px;background:rgba(245,245,220,.14);
+      position:relative;flex-shrink:0;transition:background .35s}
+    [data-theme="dark"] .pip{background:var(--sage)}
+    .pip::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;
+      border-radius:50%;background:rgba(245,245,220,.9);
+      transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    [data-theme="dark"] .pip::after{transform:translateX(13px);background:var(--g)}
+
+    /* Layout */
+    main{padding-top:68px;min-height:100vh}
+    .product-layout{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 68px);max-width:1440px;margin:0 auto}
+
+    /* Gallery */
+    .gallery{position:sticky;top:68px;height:calc(100vh - 68px);
+      display:flex;flex-direction:column;gap:14px;padding:36px 28px 36px 48px}
+    .main-img-wrap{flex:1;border-radius:14px;overflow:hidden;
+      background:var(--bg-sub);box-shadow:var(--shadow-md);position:relative}
+    .main-img-wrap img{width:100%;height:100%;object-fit:cover;
+      transition:opacity .5s,transform .7s var(--T)}
+    .main-img-wrap img.fade{opacity:0;transform:scale(1.04)}
+    .img-badge{position:absolute;bottom:18px;left:18px;
+      background:rgba(26,48,33,.82);backdrop-filter:blur(8px);
+      color:var(--sand);font-size:.6rem;font-weight:700;letter-spacing:.16em;
+      text-transform:uppercase;padding:6px 14px;border-radius:24px;
+      opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+    .img-badge.show{opacity:1;transform:translateY(0)}
+    .shimmer{position:absolute;inset:0;
+      background:linear-gradient(105deg,transparent 40%,rgba(200,213,185,.28) 50%,transparent 60%);
+      background-size:200% 100%;animation:shimmer 1.3s infinite linear;
+      opacity:0;transition:opacity .3s;pointer-events:none}
+    .shimmer.on{opacity:1}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+    .view-toggle{display:flex;background:var(--bg-sub);border-radius:30px;
+      padding:4px;border:1px solid var(--border);align-self:center}
+    .view-btn{padding:8px 20px;border-radius:26px;border:none;background:transparent;
+      color:var(--txt-m);font-family:'Montserrat',sans-serif;
+      font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+      cursor:none;transition:all .3s}
+    .view-btn.active{background:var(--g);color:var(--sand);box-shadow:0 2px 10px rgba(26,48,33,.2)}
+    [data-theme="dark"] .view-btn.active{background:var(--sage);color:var(--g2)}
+
+    .thumbs{display:flex;gap:10px}
+    .thumb{width:64px;height:76px;border-radius:8px;overflow:hidden;cursor:none;
+      border:2px solid transparent;transition:border-color .25s,transform .25s;flex-shrink:0}
+    .thumb.active{border-color:var(--g)}
+    [data-theme="dark"] .thumb.active{border-color:var(--sage)}
+    .thumb:hover{transform:translateY(-2px)}
+    .thumb img{width:100%;height:100%;object-fit:cover}
+
+    /* Info */
+    .info{padding:52px 48px 52px 28px;display:flex;flex-direction:column;overflow-y:auto}
+
+    .breadcrumb{font-size:.6rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--txt-m);margin-bottom:24px}
+    .breadcrumb a{color:var(--txt-m);transition:color .25s}
+    .breadcrumb a:hover{color:var(--wood)}
+    .breadcrumb span{color:var(--wood)}
+
+    .product-title{font-family:'Playfair Display',serif;
+      font-size:clamp(1.9rem,3.2vw,2.7rem);font-weight:700;color:var(--txt-h);
+      line-height:1.15;margin-bottom:8px}
+    .product-sub{font-family:'Cormorant Garamond',serif;font-style:italic;
+      font-size:1.05rem;color:var(--txt-m);margin-bottom:24px}
+
+    .rating-row{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+    .stars{color:var(--wood);font-size:.82rem;letter-spacing:2px}
+    .rev-txt{font-size:.68rem;font-weight:500;letter-spacing:.1em;color:var(--txt-m)}
+
+    .price-block{display:flex;align-items:baseline;gap:12px;margin-bottom:28px}
+    .price-now{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:600;color:var(--txt-h)}
+    .price-was{font-size:.95rem;color:var(--txt-m);text-decoration:line-through}
+    .price-off{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      background:var(--wood);color:#fff;padding:4px 10px;border-radius:20px}
+
+    .eco-strip{display:flex;gap:16px;padding:16px 18px;background:var(--bg-sub);
+      border-radius:12px;border:1px solid var(--border);margin-bottom:28px}
+    .eco-item{display:flex;align-items:center;gap:7px;flex:1}
+    .eco-icon{font-size:1.1rem}
+    .eco-txt{font-size:.62rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+      color:var(--txt-m);line-height:1.4}
+
+    .divider{height:1px;background:var(--border);margin:24px 0}
+
+    /* Size selector */
+    .sec-label{font-size:.66rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--txt-m);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+    .size-guide{font-size:.63rem;color:var(--wood);cursor:none;text-decoration:underline;text-underline-offset:3px}
+    .size-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .size-btn{min-width:46px;height:46px;padding:0 12px;border:1.5px solid var(--border);
+      border-radius:var(--r);background:var(--bg-card);color:var(--txt-b);
+      font-family:'Montserrat',sans-serif;font-size:.73rem;font-weight:600;
+      letter-spacing:.07em;cursor:none;transition:all .25s}
+    .size-btn:hover:not(.sold){border-color:var(--g)}
+    [data-theme="dark"] .size-btn:hover:not(.sold){border-color:var(--sage)}
+    .size-btn.active{background:var(--g);color:var(--sand);border-color:var(--g)}
+    [data-theme="dark"] .size-btn.active{background:var(--sage);color:var(--g2);border-color:var(--sage)}
+    .size-btn.sold{opacity:.28;cursor:not-allowed;text-decoration:line-through}
+    .size-hint{font-size:.62rem;color:var(--txt-m);margin-bottom:20px;min-height:18px}
+    .size-hint.error{color:#c0392b;font-weight:600}
+
+    /* Quantity + cart row */
+    .qty-cart-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    .qty-box{display:flex;align-items:center;border:1.5px solid var(--border);
+      border-radius:var(--r);overflow:hidden;flex-shrink:0}
+    .qty-btn{width:40px;height:52px;background:var(--bg-card);border:none;
+      color:var(--txt-h);font-size:1rem;font-weight:600;display:flex;
+      align-items:center;justify-content:center;transition:background .2s}
+    .qty-btn:hover{background:var(--bg-sub)}
+    .qty-num{width:40px;text-align:center;font-size:.88rem;font-weight:700;
+      color:var(--txt-h);border:none;background:transparent;outline:none;
+      border-left:1px solid var(--border);border-right:1px solid var(--border)}
+
+    .btn-add-cart{flex:1;padding:17px;background:var(--g);color:var(--sand);border:none;
+      border-radius:12px;font-family:'Montserrat',sans-serif;font-size:.72rem;
+      font-weight:700;letter-spacing:.22em;text-transform:uppercase;cursor:none;
+      transition:all .3s}
+    .btn-add-cart:hover:not(:disabled){background:var(--wood);transform:translateY(-1px);
+      box-shadow:0 8px 24px rgba(160,82,45,.3)}
+    .btn-add-cart:disabled{opacity:.65}
+    [data-theme="dark"] .btn-add-cart{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .btn-add-cart:hover:not(:disabled){background:var(--wood);color:#fff}
+
+    .btn-wishlist{width:100%;padding:15px;background:transparent;color:var(--txt-h);
+      border:1.5px solid var(--border);border-radius:12px;
+      font-family:'Montserrat',sans-serif;font-size:.72rem;
+      font-weight:600;letter-spacing:.18em;text-transform:uppercase;cursor:none;
+      transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-wishlist:hover{border-color:var(--wood);color:var(--wood)}
+    .btn-wishlist.saved{background:rgba(160,82,45,.08);border-color:var(--wood);color:var(--wood)}
+
+    /* Mirror trigger */
+    .mirror-trigger{display:flex;align-items:center;gap:12px;padding:16px 20px;
+      background:linear-gradient(135deg,var(--bg-sub),var(--bg-card));
+      border:1px solid var(--border);border-radius:12px;cursor:none;
+      transition:all .3s;margin-bottom:20px}
+    .mirror-trigger:hover{border-color:rgba(26,48,33,.25);box-shadow:var(--shadow);transform:translateY(-1px)}
+    [data-theme="dark"] .mirror-trigger:hover{border-color:rgba(200,213,185,.18)}
+    .mirror-icon-wrap{width:40px;height:40px;border-radius:50%;background:var(--g);
+      display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    [data-theme="dark"] .mirror-icon-wrap{background:var(--sage)}
+    .mirror-icon-wrap svg{width:18px;height:18px}
+    .mirror-txt h4{font-size:.77rem;font-weight:700;letter-spacing:.07em;color:var(--txt-h);margin-bottom:2px}
+    .mirror-txt p{font-size:.64rem;color:var(--txt-m)}
+    .mirror-chev{margin-left:auto;color:var(--txt-m);transition:transform .3s}
+    .mirror-trigger.open .mirror-chev{transform:rotate(180deg)}
+
+    .mirror-panel{overflow:hidden;max-height:0;opacity:0;
+      transition:max-height .5s var(--T),opacity .4s;margin-bottom:0}
+    .mirror-panel.open{max-height:540px;opacity:1;margin-bottom:20px}
+    .mirror-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px}
+    .mirror-heading{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--txt-h);margin-bottom:5px}
+    .mirror-sub{font-size:.65rem;color:var(--txt-m);margin-bottom:20px;line-height:1.6}
+    .mirror-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+    .inp-group{display:flex;flex-direction:column;gap:6px}
+    .inp-lbl{font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--txt-m)}
+    .inp-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r);
+      overflow:hidden;background:var(--bg);transition:border-color .25s}
+    .inp-wrap:focus-within{border-color:var(--g)}
+    [data-theme="dark"] .inp-wrap:focus-within{border-color:var(--sage)}
+    .inp-wrap input{flex:1;padding:10px 12px;border:none;background:transparent;
+      font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:500;color:var(--txt-h);outline:none}
+    .inp-unit{padding:0 10px;font-size:.62rem;font-weight:700;letter-spacing:.1em;color:var(--txt-m);
+      background:var(--bg-sub);height:100%;display:flex;align-items:center;border-left:1px solid var(--border)}
+    .mirror-submit{width:100%;padding:13px;background:var(--g);color:var(--sand);border:none;
+      border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:.7rem;
+      font-weight:700;letter-spacing:.18em;text-transform:uppercase;cursor:none;
+      transition:all .3s;margin-bottom:14px}
+    .mirror-submit:hover{background:var(--wood);transform:translateY(-1px)}
+    [data-theme="dark"] .mirror-submit{background:var(--sage);color:var(--g2)}
+    .mirror-result{display:none;padding:12px 16px;
+      background:linear-gradient(135deg,rgba(26,48,33,.05),rgba(26,48,33,.02));
+      border-left:3px solid var(--g);border-radius:0 var(--r) var(--r) 0}
+    [data-theme="dark"] .mirror-result{border-left-color:var(--sage);background:linear-gradient(135deg,rgba(200,213,185,.05),rgba(200,213,185,.02))}
+    .mirror-result.show{display:block}
+    .result-profile{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-h);margin-bottom:3px}
+    .result-desc{font-size:.65rem;color:var(--txt-m);line-height:1.6}
+    .result-rec{display:inline-block;margin-top:7px;padding:3px 12px;
+      background:var(--g);color:var(--sand);border-radius:20px;
+      font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+    [data-theme="dark"] .result-rec{background:var(--sage);color:var(--g2)}
+
+    /* Description */
+    .product-desc{font-size:.8rem;line-height:1.85;color:var(--txt-b);margin-bottom:24px}
+
+    /* Accordion */
+    .accordion{border-top:1px solid var(--border)}
+    .acc-item{border-bottom:1px solid var(--border)}
+    .acc-header{display:flex;justify-content:space-between;align-items:center;
+      padding:17px 0;cursor:none;font-size:.7rem;font-weight:700;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--txt-h);user-select:none}
+    .acc-icon{font-size:1.05rem;color:var(--txt-m);transition:transform .3s}
+    .acc-item.open .acc-icon{transform:rotate(45deg)}
+    .acc-body{max-height:0;overflow:hidden;transition:max-height .4s var(--T)}
+    .acc-item.open .acc-body{max-height:280px}
+    .acc-content{padding-bottom:16px;font-size:.76rem;line-height:1.85;color:var(--txt-m)}
+    .acc-content ul li::before{content:"— ";color:var(--wood)}
+
+    /* Related */
+    .related-section{max-width:1440px;margin:0 auto;padding:60px 48px 80px;border-top:1px solid var(--border)}
+    .related-heading{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:var(--txt-h);margin-bottom:32px}
+    .related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .rel-card{background:var(--bg-card);border-radius:12px;overflow:hidden;
+      border:1px solid var(--border);cursor:none;transition:transform .4s var(--T),box-shadow .4s var(--T)}
+    .rel-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md)}
+    .rel-img{height:220px;overflow:hidden;background:var(--bg-sub)}
+    .rel-img img{width:100%;height:100%;object-fit:cover;transition:transform .7s var(--T)}
+    .rel-card:hover .rel-img img{transform:scale(1.06)}
+    .rel-body{padding:16px 18px 18px}
+    .rel-col{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--wood);margin-bottom:4px}
+    .rel-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--txt-h);margin-bottom:10px;line-height:1.25}
+    .rel-price-row{display:flex;align-items:center;justify-content:space-between}
+    .rel-price{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--txt-h)}
+    .rel-btn{padding:7px 18px;border-radius:30px;background:var(--g);color:var(--sand);border:none;
+      font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+      cursor:none;transition:background .25s}
+    .rel-btn:hover{background:var(--wood)}
+    [data-theme="dark"] .rel-btn{background:var(--sage);color:var(--g2)}
+    [data-theme="dark"] .rel-btn:hover{background:var(--wood);color:#fff}
+
+    /* Animations */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+    .info>*{animation:fadeUp .6s both}
+    .info>*:nth-child(1){animation-delay:.05s}.info>*:nth-child(2){animation-delay:.1s}
+    .info>*:nth-child(3){animation-delay:.15s}.info>*:nth-child(4){animation-delay:.2s}
+    .info>*:nth-child(5){animation-delay:.25s}.info>*:nth-child(6){animation-delay:.3s}
+    .gallery{animation:fadeUp .7s .1s both}
+
+    /* Responsive */
+    @media(max-width:1024px){
+      nav{padding:0 24px}.nav-links{display:none}
+      .product-layout{grid-template-columns:1fr}
+      .gallery{position:relative;top:0;height:auto;padding:28px 24px 0}
+      .main-img-wrap{height:60vw;max-height:480px}
+      .info{padding:28px 24px 48px}
+      .related-section{padding:48px 24px 60px}
+      .related-grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:600px){
+      nav{padding:0 16px;height:60px}
+      main{padding-top:60px}
+      .related-grid{grid-template-columns:1fr}
+      .eco-strip{flex-wrap:wrap;gap:10px}
+      .qty-cart-row{flex-direction:column}
+      .qty-box{width:100%;justify-content:center}
+      .btn-add-cart{width:100%}
+    }
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="/static/logo1.png" alt="Foresta"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+    <span class="logo-txt" style="display:none">FORESTA</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/products">Shop All</a></li>
+    <li><a href="/#collections">Collections</a></li>
+    <li><a href="/#sustainability">Why Foresta</a></li>
+    <li><a href="#">Journal</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/search" class="nav-btn" title="Search">⌕</a>
+    <a href="/wishlist" class="nav-btn" title="Wishlist" style="position:relative">
+      ♡
+      <span class="nav-badge" id="wishBadge"
+        {% if wishlist_count == 0 %}style="display:none"{% endif %}>{{ wishlist_count }}</span>
+    </a>
+    <a href="/cart" class="nav-btn" title="Cart" style="position:relative">
+      ⊕
+      <span class="nav-badge" id="cartBadge"
+        {% if cart_count == 0 %}style="display:none"{% endif %}>{{ cart_count }}</span>
+    </a>
+    <button class="lang-toggle" onclick="toggleLanguage()">عربي</button>
+    <button class="theme-btn" id="themeToggle">
+      <span class="icon" id="themeIcon">☀️</span>
+      <span class="lbl" id="themeLbl">Light</span>
+      <div class="pip"></div>
+    </button>
+  </div>
+</nav>
+
+{% set _fallback_img = 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=700&q=80' %}
+{% set _img0 = product.images[0].src if product.images else (product.cover or _fallback_img) %}
+{% set _img1 = product.images[1].src if product.images|length > 1 else _img0 %}
+
+<!-- MAIN -->
+<main>
+  <div class="product-layout">
+
+    <!-- GALLERY -->
+    <div class="gallery">
+      <div class="main-img-wrap" id="mainImgWrap">
+        <img id="mainImg" src="{{ _img0 }}" alt="{{ product.name }}" />
+        <div class="shimmer" id="shimmer"></div>
+        <div class="img-badge" id="imgBadge"></div>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnStd" onclick="switchView('standard')">Standard View</button>
+        <button class="view-btn" id="btnMirror" onclick="switchView('mirror')">My Body View</button>
+      </div>
+      <div class="thumbs">
+        {% for img in product.images %}
+        <div class="thumb {% if loop.first %}active{% endif %}"
+          onclick="changeImg(this,'{{ img.src }}','{{ img.label }}')" tabindex="0">
+          <img src="{{ img.thumb }}" alt="{{ img.label }}" />
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info">
+      <div class="breadcrumb">
+        <a href="/">Home</a> /
+        <a href="/products">Shop</a> /
+        <a href="/products?collection={{ product.collection|urlencode }}">{{ product.collection }}</a> /
+        <span>{{ product.name }}</span>
+      </div>
+
+      <h1 class="product-title">{{ product.name }}</h1>
+      <p class="product-sub">{{ product.subtitle }}</p>
+
+      <div class="rating-row">
+        <span class="stars">★★★★★</span>
+        <span class="rev-txt">{{ product.rating }} · {{ product.reviews }} reviews</span>
+      </div>
+
+      <div class="price-block">
+        <span class="price-now">{{ product.currency }}{{ product.price }}</span>
+        {% if product.original_price > product.price %}
+        <span class="price-was">{{ product.currency }}{{ product.original_price }}</span>
+        <span class="price-off">−{{ product.discount }}%</span>
+        {% endif %}
+      </div>
+
+      <div class="eco-strip">
+        {% for e in product.eco %}
+        <div class="eco-item">
+          <span class="eco-icon">{{ e.icon }}</span>
+          <span class="eco-txt" data-i18n="pd_free_ship">{{ e.title }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Virtual Mirror -->
+      <div class="mirror-trigger" id="mirrorTrigger" onclick="toggleMirror()">
+        <div class="mirror-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C9.24 2 7 4.24 7 7C7 9.76 9.24 12 12 12C14.76 12 17 9.76 17 7C17 4.24 14.76 2 12 2Z"
+              fill="#F5F5DC" opacity=".9"/>
+            <path d="M12 14C7.58 14 4 15.79 4 18V20H20V18C20 15.79 16.42 14 12 14Z"
+              fill="#F5F5DC" opacity=".6"/>
+            <circle cx="19" cy="5" r="3" fill="#A0522D" opacity=".9"/>
+            <path d="M19 3.5V5M19 5V6.5M19 5H17.5M19 5H20.5"
+              stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="mirror-txt">
+          <h4>Find My Perfect Fit — Virtual Mirror</h4>
+          <p>Enter your measurements to see how this fits your body type</p>
+        </div>
+        <span class="mirror-chev">▾</span>
+      </div>
+
+      <div class="mirror-panel" id="mirrorPanel">
+        <div class="mirror-inner">
+          <h3 class="mirror-heading">The Virtual Mirror</h3>
+          <p class="mirror-sub">Enter your measurements and we'll recommend the ideal size for this garment.</p>
+          <div class="mirror-inputs">
+            <div class="inp-group">
+              <label class="inp-lbl">Height</label>
+              <div class="inp-wrap">
+                <input type="number" id="heightInput" placeholder="170" min="120" max="230" />
+                <span class="inp-unit">cm</span>
+              </div>
+            </div>
+            <div class="inp-group">
+              <label class="inp-lbl">Weight</label>
+              <div class="inp-wrap">
+                <input type="number" id="weightInput" placeholder="65" min="30" max="200" />
+                <span class="inp-unit">kg</span>
+              </div>
+            </div>
+          </div>
+          <button class="mirror-submit" onclick="generateMirror()">Generate My View ✦</button>
+          <div class="mirror-result" id="mirrorResult">
+            <div class="result-profile" id="resultProfile">—</div>
+            <div class="result-desc" id="resultDesc">—</div>
+            <span class="result-rec" id="resultRec">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Size selector -->
+      <div class="sec-label">
+        <span data-i18n="pd_size_label">Select Size</span>
+        <span class="size-guide">Size Guide ↗</span>
+      </div>
+      <div class="size-grid">
+        {% for size in product.sizes %}
+        <button
+          class="size-btn {% if not size.available %}sold{% endif %}"
+          {% if not size.available %}disabled{% endif %}
+          onclick="selectSize(this)">
+          {{ size.label }}
+        </button>
+        {% endfor %}
+      </div>
+      <div class="size-hint" id="sizeHint">Select a size to continue</div>
+
+      <!-- Quantity + Add to Cart -->
+      <div class="qty-cart-row">
+        <div class="qty-box">
+          <button class="qty-btn" id="qtyMinus" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="qtyDisplay">1</span>
+          <button class="qty-btn" id="qtyPlus" onclick="changeQty(1)">+</button>
+        </div>
+        <button class="btn-add-cart" id="addToCartBtn" onclick="addToCart()">
+          <span data-i18n="pd_add_cart">Add to Cart</span> — {{ product.currency }}{{ product.price }}
+        </button>
+      </div>
+
+      <button class="btn-wishlist" id="wishlistBtn" onclick="toggleWishlist()">
+        <span id="wishIcon">♡</span>
+        <span id="wishLabel" data-i18n="pd_add_wish">Save to Wishlist</span>
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Description -->
+      <p class="product-desc">{{ product.description }}</p>
+
+      <!-- Accordion -->
+      <div class="accordion">
+        {% for section_name, items in product.details.items() %}
+        <div class="acc-item">
+          <div class="acc-header" onclick="toggleAcc(this)">
+            {{ section_name }}
+            <span class="acc-icon">+</span>
+          </div>
+          <div class="acc-body">
+            <div class="acc-content">
+              <ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div><!-- /info -->
+  </div><!-- /product-layout -->
+
+  <!-- RELATED -->
+  {% if related %}
+  <div class="related-section">
+    <h2 class="related-heading" data-i18n="pd_related">You May Also Like</h2>
+    <div class="related-grid">
+      {% for rel in related %}
+      <a href="{{ url_for('product_detail', slug=rel.slug) }}" style="text-decoration:none">
+        <div class="rel-card">
+          <div class="rel-img"><img src="{{ rel.cover }}" alt="{{ rel.name }}" loading="lazy" /></div>
+          <div class="rel-body">
+            <div class="rel-col">{{ rel.collection }}</div>
+            <div class="rel-name">{{ rel.name }}</div>
+            <div class="rel-price-row">
+              <span class="rel-price">{{ rel.currency }}{{ rel.price }}</span>
+              <button class="rel-btn">View →</button>
+            </div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</main>
+
+<script src="/static/i18n.js"></script>
+<script>
+  // ─── Cursor ───────────────────────────────────────────────
+  const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop)})();
+
+  // ─── Theme ────────────────────────────────────────────────
+  const html=document.documentElement;
+  html.dataset.theme=localStorage.getItem('forestaTheme')||'light';
+  function syncTheme(){const d=html.dataset.theme==='dark';document.getElementById('themeIcon').textContent=d?'🌙':'☀️';document.getElementById('themeLbl').textContent=d?'Dark':'Light';}
+  syncTheme();
+  document.getElementById('themeToggle').addEventListener('click',()=>{
+    html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';
+    localStorage.setItem('forestaTheme',html.dataset.theme);syncTheme();
+  });
+
+  // ─── Toast ────────────────────────────────────────────────
+  function showToast(msg,type='success'){
+    const tc=document.getElementById('toastContainer');
+    const t=document.createElement('div');
+    t.className=`toast ${type}`;
+    t.innerHTML=`<span>${type==='error'?'✕':'✓'}</span><span>${msg}</span>`;
+    tc.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),50);
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400)},3200);
+  }
+
+  // ─── Badge updaters ───────────────────────────────────────
+  function updateCartBadge(count){
+    const b=document.getElementById('cartBadge');
+    if(!b)return;
+    b.textContent=count;b.style.display=count>0?'flex':'none';
+    b.classList.add('bump');setTimeout(()=>b.classList.remove('bump'),300);
+  }
+  function updateWishBadge(count){
+    const b=document.getElementById('wishBadge');
+    if(!b)return;
+    b.textContent=count;b.style.display=count>0?'flex':'none';
+  }
+
+  // ─── Gallery ─────────────────────────────────────────────
+  let currentView='standard';
+  function changeImg(thumbEl,src,label){
+    if(currentView!=='standard')return;
+    document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
+    thumbEl.classList.add('active');
+    swapImg(src,label,true);
+  }
+  function swapImg(src,badgeText,showBadge){
+    const img=document.getElementById('mainImg');
+    const sh=document.getElementById('shimmer');
+    const badge=document.getElementById('imgBadge');
+    img.classList.add('fade');sh.classList.add('on');badge.classList.remove('show');
+    setTimeout(()=>{
+      img.src=src;
+      const done=()=>{img.classList.remove('fade');sh.classList.remove('on');
+        if(showBadge&&badgeText){badge.textContent=badgeText;badge.classList.add('show');}};
+      img.onload=done;setTimeout(done,700);
+    },280);
+  }
+  function switchView(v){
+    currentView=v;
+    document.getElementById('btnStd').classList.toggle('active',v==='standard');
+    document.getElementById('btnMirror').classList.toggle('active',v==='mirror');
+    if(v==='standard'){swapImg("{{ _img0 }}",'',false);}
+    else{
+      const r=document.getElementById('mirrorResult');
+      if(r.classList.contains('show'))triggerMirrorImg(document.getElementById('resultRec').textContent);
+      else swapImg("{{ _img0 }}",'⟳ Generate your view below',true);
+    }
+  }
+
+  // ─── Mirror ───────────────────────────────────────────────
+  function toggleMirror(){
+    const p=document.getElementById('mirrorPanel'),t=document.getElementById('mirrorTrigger');
+    const o=p.classList.contains('open');
+    p.classList.toggle('open',!o);t.classList.toggle('open',!o);
+  }
+  const PROFILES={
+    slim:{label:'Slim Profile',desc:'Your lean frame means this garment will drape gracefully with room to layer underneath.',rec:'Recommended Size: S',img:"{{ _img0 }}",badge:'✦ Slim Profile'},
+    athletic:{label:'Athletic Profile',desc:'Your well-proportioned frame suits this piece perfectly — accommodating your shoulders while staying relaxed through the body.',rec:'Recommended Size: M',img:"{{ _img1 }}",badge:'✦ Athletic Profile'},
+    average:{label:'Balanced Profile',desc:'This piece was designed with your proportions at its heart. The natural fabric drapes evenly at your silhouette.',rec:'Recommended Size: L',img:"{{ _img0 }}",badge:'✦ Balanced Profile'},
+    plus:{label:'Generous Profile',desc:'The relaxed structure creates a flowing, flattering drape. The natural fabric breathes well and moves freely.',rec:'Recommended Size: XL–XXL',img:"{{ _img0 }}",badge:'✦ Generous Profile'},
+  };
+  function classifyBMI(bmi){if(bmi<18.5)return'slim';if(bmi<23)return'athletic';if(bmi<28)return'average';return'plus';}
+  function triggerMirrorImg(rec){
+    let key='average';
+    if(rec.includes('S')&&!rec.includes('XS'))key='slim';
+    else if(rec.includes('M')&&!rec.includes('XL'))key='athletic';
+    else if(rec.includes('XL'))key='plus';
+    const p=PROFILES[key];swapImg(p.img,p.badge,true);
+  }
+  function generateMirror(){
+    const h=parseFloat(document.getElementById('heightInput').value);
+    const w=parseFloat(document.getElementById('weightInput').value);
+    if(!h||!w||h<100||h>240||w<30||w>250){showToast('Please enter valid measurements','error');return;}
+    const bmi=w/((h/100)**2);
+    const key=classifyBMI(bmi);const p=PROFILES[key];
+    currentView='mirror';
+    document.getElementById('btnStd').classList.remove('active');
+    document.getElementById('btnMirror').classList.add('active');
+    const img=document.getElementById('mainImg');
+    const sh=document.getElementById('shimmer');
+    img.classList.add('fade');sh.classList.add('on');
+    setTimeout(()=>{
+      img.src=p.img;
+      const done=()=>{img.classList.remove('fade');sh.classList.remove('on');
+        document.getElementById('imgBadge').textContent=p.badge;
+        document.getElementById('imgBadge').classList.add('show');};
+      img.onload=done;setTimeout(done,700);
+      document.getElementById('resultProfile').textContent=`${p.label} · BMI ${bmi.toFixed(1)}`;
+      document.getElementById('resultDesc').textContent=p.desc;
+      document.getElementById('resultRec').textContent=p.rec;
+      document.getElementById('mirrorResult').classList.add('show');
+      const sizeLabel=p.rec.includes('S')&&!p.rec.includes('XS')?'S':p.rec.includes('M')&&!p.rec.includes('XL')?'M':p.rec.includes('XL–XXL')?'XL':'L';
+      selectSizeByLabel(sizeLabel);
+    },1500);
+  }
+  function selectSizeByLabel(lbl){
+    document.querySelectorAll('.size-btn').forEach(b=>{
+      b.classList.remove('active');
+      if(b.textContent.trim()===lbl&&!b.classList.contains('sold'))b.classList.add('active');
+    });
+    updateSizeHint();
+  }
+
+  // ─── Size ─────────────────────────────────────────────────
+  function selectSize(btn){
+    document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    updateSizeHint();
+  }
+  function updateSizeHint(){
+    const active=document.querySelector('.size-btn.active');
+    const hint=document.getElementById('sizeHint');
+    if(active){hint.textContent=`Size ${active.textContent.trim()} selected`;hint.classList.remove('error');}
+    else{hint.textContent='Select a size to continue';hint.classList.remove('error');}
+  }
+
+  // ─── Quantity ─────────────────────────────────────────────
+  let qty=1;
+  function changeQty(delta){
+    qty=Math.max(1,Math.min(10,qty+delta));
+    document.getElementById('qtyDisplay').textContent=qty;
+  }
+
+  // ─── Add to Cart ──────────────────────────────────────────
+  async function addToCart(){
+    const sizeBtn=document.querySelector('.size-btn.active');
+    if(!sizeBtn){
+      document.getElementById('sizeHint').textContent='Please select a size first';
+      document.getElementById('sizeHint').classList.add('error');
+      showToast('Please select a size first','error');
+      return;
+    }
+    const size=sizeBtn.textContent.trim();
+    const btn=document.getElementById('addToCartBtn');
+    btn.disabled=true;btn.textContent='Adding…';
+    try{
+      const r=await fetch('/cart/add',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({slug:'{{ product.slug }}',size,quantity:qty})
+      });
+      const d=await r.json();
+      if(d.success){
+        showToast(d.message,'success');
+        updateCartBadge(d.cart_count);
+        btn.textContent='✓ Added to Cart!';
+        setTimeout(()=>{btn.disabled=false;btn.textContent='Add to Cart — {{ product.currency }}{{ product.price }}';},2200);
+      }else{
+        showToast(d.error||'Something went wrong','error');
+        btn.disabled=false;btn.textContent='Add to Cart — {{ product.currency }}{{ product.price }}';
+      }
+    }catch(e){
+      showToast('Network error, please try again','error');
+      btn.disabled=false;btn.textContent='Add to Cart — {{ product.currency }}{{ product.price }}';
+    }
+  }
+
+  // ─── Wishlist ─────────────────────────────────────────────
+  let inWishlist={{ 'true' if product.slug in wishlist_slugs else 'false' }};
+  function renderWishBtn(){
+    const btn=document.getElementById('wishlistBtn');
+    document.getElementById('wishIcon').textContent=inWishlist?'♥':'♡';
+    document.getElementById('wishLabel').textContent=inWishlist?'Saved to Wishlist':'Save to Wishlist';
+    btn.classList.toggle('saved',inWishlist);
+  }
+  renderWishBtn();
+  async function toggleWishlist(){
+    try{
+      const r=await fetch('/wishlist/toggle',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({slug:'{{ product.slug }}'})
+      });
+      const d=await r.json();
+      if(d.success){inWishlist=d.saved;renderWishBtn();showToast(d.message,'success');updateWishBadge(d.wishlist_count);}
+    }catch(e){showToast('Network error','error');}
+  }
+
+  // ─── Accordion ────────────────────────────────────────────
+  function toggleAcc(header){
+    const item=header.parentElement;const was=item.classList.contains('open');
+    document.querySelectorAll('.acc-item').forEach(i=>i.classList.remove('open'));
+    if(!was)item.classList.add('open');
+  }
+
+  // ─── Image protect ────────────────────────────────────────
+  document.querySelectorAll('img').forEach(img=>{
+    img.addEventListener('dragstart',e=>e.preventDefault());
+    img.addEventListener('contextmenu',e=>e.preventDefault());
+  });
+
+  // ─── Keyboard nav for thumbs ──────────────────────────────
+  document.querySelectorAll('.thumb').forEach((thumb,i,all)=>{
+    thumb.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();thumb.click();}
+      if(e.key==='ArrowRight'&&all[i+1])all[i+1].focus();
+      if(e.key==='ArrowLeft'&&all[i-1])all[i-1].focus();
+    });
+  });
+</script>
+</body>
+</html>
