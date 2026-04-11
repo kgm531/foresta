@@ -189,6 +189,32 @@
       font-size:.62rem;color:var(--txt-m);border-left:3px solid rgba(26,48,33,.18)}
     [data-theme="dark"] .eco-note{background:rgba(200,213,185,.05);border-left-color:rgba(200,213,185,.2)}
 
+    /* Coupon */
+    .coupon-wrap{display:flex;gap:8px;margin-bottom:14px}
+    .coupon-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+      background:var(--bg);color:var(--txt-h);font-size:.78rem;font-weight:600;
+      letter-spacing:.1em;text-transform:uppercase;outline:none;
+      transition:border-color .25s,background var(--T),color var(--T);font-family:'Montserrat',sans-serif}
+    .coupon-input:focus{border-color:var(--g)}
+    [data-theme="dark"] .coupon-input:focus{border-color:var(--sage)}
+    .coupon-input::placeholder{text-transform:none;font-weight:400;letter-spacing:0}
+    .coupon-btn{padding:10px 16px;border:1.5px solid var(--g);border-radius:8px;
+      background:transparent;color:var(--g);font-size:.62rem;font-weight:700;
+      letter-spacing:.14em;text-transform:uppercase;cursor:none;transition:all .25s;
+      font-family:'Montserrat',sans-serif;white-space:nowrap}
+    .coupon-btn:hover{background:var(--g);color:var(--sand)}
+    [data-theme="dark"] .coupon-btn{border-color:var(--sage);color:var(--sage)}
+    [data-theme="dark"] .coupon-btn:hover{background:var(--sage);color:var(--g2)}
+    .coupon-badge{display:flex;align-items:center;gap:6px;padding:8px 12px;
+      background:rgba(26,48,33,.06);border-radius:8px;font-size:.68rem;font-weight:600;
+      color:var(--g);margin-bottom:10px}
+    [data-theme="dark"] .coupon-badge{background:rgba(200,213,185,.08);color:var(--sage)}
+    .coupon-remove{margin-left:auto;background:none;border:none;cursor:none;font-size:.75rem;
+      color:var(--txt-m);transition:color .2s}
+    .coupon-remove:hover{color:#8B2020}
+    .summary-discount{color:#2E7D32;font-weight:700}
+    [data-theme="dark"] .summary-discount{color:#81c784}
+
     /* Flash messages */
     .flash-error{padding:12px 16px;background:rgba(139,32,32,.1);
       border:1px solid rgba(139,32,32,.25);border-radius:8px;
@@ -404,6 +430,23 @@
         </div>
         {% endfor %}
       </div>
+      <!-- Coupon code -->
+      <div class="coupon-wrap">
+        <input type="text" id="couponInput" class="coupon-input"
+          placeholder="Coupon code…" value="{{ coupon_code }}"
+          {% if coupon_code %}readonly{% endif %} />
+        <button type="button" class="coupon-btn" id="couponApplyBtn"
+          onclick="applyCoupon()" {% if coupon_code %}style="display:none"{% endif %}>Apply</button>
+      </div>
+      {% if coupon_code %}
+      <div class="coupon-badge" id="couponBadge">
+        🏷️ <strong>{{ coupon_code }}</strong> applied
+        <button class="coupon-remove" onclick="removeCoupon()">✕ Remove</button>
+      </div>
+      {% else %}
+      <div class="coupon-badge" id="couponBadge" style="display:none"></div>
+      {% endif %}
+
       <div class="summary-divider"></div>
       <div class="summary-row">
         <span class="summary-label">Subtotal</span>
@@ -413,10 +456,21 @@
         <span class="summary-label">Shipping</span>
         <span class="summary-val">{% if shipping == 0 %}Free{% else %}${{ shipping }}{% endif %}</span>
       </div>
+      {% if discount > 0 %}
+      <div class="summary-row" id="discountRow">
+        <span class="summary-label">Discount</span>
+        <span class="summary-discount" id="discountVal">−${{ discount }}</span>
+      </div>
+      {% else %}
+      <div class="summary-row" id="discountRow" style="display:none">
+        <span class="summary-label">Discount</span>
+        <span class="summary-discount" id="discountVal">−$0</span>
+      </div>
+      {% endif %}
       <div class="summary-divider"></div>
       <div class="summary-total-row">
         <span class="summary-total-label">Total</span>
-        <span class="summary-total-val">${{ total }}</span>
+        <span class="summary-total-val" id="totalVal">${{ total }}</span>
       </div>
       <div class="eco-note">
         <span>🚀</span>
@@ -466,6 +520,54 @@
     if(v.length>=2) v=v.substring(0,2)+' / '+v.substring(2);
     el.value=v;
   }
+
+  // Coupon
+  async function applyCoupon(){
+    const code=document.getElementById('couponInput').value.trim();
+    if(!code)return;
+    const btn=document.getElementById('couponApplyBtn');
+    btn.disabled=true; btn.textContent='…';
+    try{
+      const r=await fetch('/coupon/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+      const d=await r.json();
+      if(d.success){
+        document.getElementById('couponInput').readOnly=true;
+        btn.style.display='none';
+        const badge=document.getElementById('couponBadge');
+        badge.style.display='flex';
+        badge.innerHTML=`🏷️ <strong>${d.code}</strong> applied <button class="coupon-remove" onclick="removeCoupon()">✕ Remove</button>`;
+        const dr=document.getElementById('discountRow');
+        dr.style.display='flex';
+        document.getElementById('discountVal').textContent=`−$${d.discount}`;
+        document.getElementById('totalVal').textContent=`$${d.total}`;
+        // Update place order button text
+        document.getElementById('placeOrderBtn').innerHTML=`<span>🌿</span> <span>Place Order</span> · $${d.total}`;
+      } else {
+        alert(d.error);
+        btn.disabled=false; btn.textContent='Apply';
+      }
+    }catch(e){btn.disabled=false;btn.textContent='Apply';}
+  }
+
+  async function removeCoupon(){
+    const r=await fetch('/coupon/remove',{method:'POST'});
+    const d=await r.json();
+    if(d.success){
+      const inp=document.getElementById('couponInput');
+      inp.value=''; inp.readOnly=false;
+      document.getElementById('couponApplyBtn').style.display='';
+      document.getElementById('couponApplyBtn').disabled=false;
+      document.getElementById('couponApplyBtn').textContent='Apply';
+      document.getElementById('couponBadge').style.display='none';
+      document.getElementById('discountRow').style.display='none';
+      document.getElementById('totalVal').textContent=`$${d.total}`;
+      document.getElementById('placeOrderBtn').innerHTML=`<span>🌿</span> <span>Place Order</span> · $${d.total}`;
+    }
+  }
+
+  document.getElementById('couponInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();applyCoupon();}
+  });
 
   // Form submit with loading state
   document.getElementById('checkoutForm').addEventListener('submit', function(e){

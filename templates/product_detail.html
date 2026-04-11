@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ product.name }} — Foresta</title>
   <meta name="description" content="{{ product.subtitle }}" />
+  <meta property="og:title" content="{{ product.name }} — Foresta" />
+  <meta property="og:description" content="{{ product.subtitle }}" />
+  <meta property="og:image" content="{{ product.cover }}" />
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content="https://foresta.store/product/{{ product.slug }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ product.name }} — Foresta" />
+  <meta name="twitter:image" content="{{ product.cover }}" />
+  <link rel="canonical" href="https://foresta.store/product/{{ product.slug }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,500&display=swap" rel="stylesheet" />
@@ -304,6 +313,70 @@
     [data-theme="dark"] .rel-btn{background:var(--sage);color:var(--g2)}
     [data-theme="dark"] .rel-btn:hover{background:var(--wood);color:#fff}
 
+    /* Zoom hint */
+    .zoom-hint{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.45);color:#fff;
+      font-size:.58rem;font-weight:600;letter-spacing:.1em;padding:4px 10px;border-radius:20px;
+      opacity:0;transition:opacity .25s;pointer-events:none}
+    .main-img-wrap:hover .zoom-hint{opacity:1}
+
+    /* Image Zoom Lightbox */
+    .zoom-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+      z-index:10000;display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity .3s}
+    .zoom-overlay.open{opacity:1;pointer-events:auto}
+    .zoom-overlay img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:4px;
+      transform:scale(.92);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    .zoom-overlay.open img{transform:scale(1)}
+    .zoom-close{position:absolute;top:20px;right:24px;width:40px;height:40px;border-radius:50%;
+      background:rgba(255,255,255,.12);border:none;color:#fff;font-size:1.2rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    .zoom-close:hover{background:rgba(255,255,255,.22)}
+
+    /* Size Guide Modal */
+    .sg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+      z-index:9500;display:flex;align-items:center;justify-content:center;padding:20px;
+      opacity:0;pointer-events:none;transition:opacity .3s}
+    .sg-overlay.open{opacity:1;pointer-events:auto}
+    .sg-modal{background:var(--bg-card);border-radius:16px;padding:32px;max-width:600px;width:100%;
+      max-height:85vh;overflow-y:auto;transform:translateY(20px);
+      transition:transform .35s cubic-bezier(.34,1.56,.64,1),background var(--T)}
+    .sg-overlay.open .sg-modal{transform:translateY(0)}
+    .sg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .sg-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--txt-h)}
+    .sg-close{background:none;border:none;font-size:1.3rem;color:var(--txt-m);cursor:pointer;
+      padding:4px 8px;border-radius:6px;transition:background .2s,color .2s}
+    .sg-close:hover{background:var(--bg-sub);color:var(--txt-h)}
+    .sg-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:20px}
+    .sg-table th{padding:10px 14px;background:var(--bg-sub);color:var(--txt-m);font-size:.6rem;
+      font-weight:700;letter-spacing:.15em;text-transform:uppercase;text-align:left;
+      transition:background var(--T)}
+    .sg-table th:first-child{border-radius:8px 0 0 8px}
+    .sg-table th:last-child{border-radius:0 8px 8px 0}
+    .sg-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--txt-b)}
+    .sg-table tr:last-child td{border-bottom:none}
+    .sg-table tr:hover td{background:var(--bg-sub)}
+    .sg-note{font-size:.7rem;color:var(--txt-m);line-height:1.6;padding:12px 14px;
+      background:var(--bg-sub);border-radius:8px;border-left:3px solid var(--border);
+      transition:background var(--T)}
+
+    /* Recently Viewed */
+    .rv-section{max-width:1300px;margin:0 auto;padding:48px 48px 72px}
+    .rv-heading{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
+      color:var(--txt-h);margin-bottom:24px}
+    .rv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+    .rv-card{background:var(--bg-card);border-radius:12px;overflow:hidden;border:1px solid var(--border);
+      transition:transform .3s,box-shadow .3s;text-decoration:none;color:inherit;display:block}
+    .rv-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,48,33,.1)}
+    .rv-img{height:180px;overflow:hidden;background:var(--bg-sub)}
+    .rv-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+    .rv-card:hover .rv-img img{transform:scale(1.05)}
+    .rv-body{padding:14px 16px 16px}
+    .rv-name{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:600;
+      color:var(--txt-h);margin-bottom:4px}
+    .rv-price{font-size:.78rem;color:var(--txt-m)}
+    @media(max-width:900px){.rv-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:540px){.rv-section{padding:32px 18px 48px}.rv-grid{grid-template-columns:1fr 1fr}}
+
     /* Animations */
     @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
     .info>*{animation:fadeUp .6s both}
@@ -338,6 +411,41 @@
 <div id="cur"></div>
 <div id="cur-r"></div>
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- IMAGE ZOOM LIGHTBOX -->
+<div class="zoom-overlay" id="zoomOverlay" onclick="closeZoom(event)">
+  <img id="zoomImg" src="" alt="" />
+  <button class="zoom-close" onclick="closeZoom(null)">✕</button>
+</div>
+
+<!-- SIZE GUIDE MODAL -->
+<div class="sg-overlay" id="sgOverlay" onclick="closeSizeGuide(event)">
+  <div class="sg-modal">
+    <div class="sg-header">
+      <div class="sg-title">Size Guide</div>
+      <button class="sg-close" onclick="closeSizeGuide(null)">✕</button>
+    </div>
+    <p style="font-size:.78rem;color:var(--txt-m);margin-bottom:20px;line-height:1.6;">
+      All measurements are in <strong>centimetres (cm)</strong>. Measure over your base layer for the most accurate fit.
+    </p>
+    <table class="sg-table">
+      <thead>
+        <tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hips</th><th>Length</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>XS</td><td>82–87</td><td>66–71</td><td>90–95</td><td>64</td></tr>
+        <tr><td>S</td><td>88–93</td><td>72–77</td><td>96–101</td><td>66</td></tr>
+        <tr><td>M</td><td>94–99</td><td>78–83</td><td>102–107</td><td>68</td></tr>
+        <tr><td>L</td><td>100–107</td><td>84–91</td><td>108–115</td><td>70</td></tr>
+        <tr><td>XL</td><td>108–117</td><td>92–101</td><td>116–125</td><td>72</td></tr>
+        <tr><td>XXL</td><td>118–129</td><td>102–113</td><td>126–137</td><td>74</td></tr>
+      </tbody>
+    </table>
+    <div class="sg-note">
+      📐 <strong>Between sizes?</strong> We recommend sizing up for a relaxed, oversized fit — our signature silhouette. All Foresta pieces are designed with ease of movement in mind.
+    </div>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -383,10 +491,11 @@
 
     <!-- GALLERY -->
     <div class="gallery">
-      <div class="main-img-wrap" id="mainImgWrap">
+      <div class="main-img-wrap" id="mainImgWrap" onclick="openZoom(this)" style="cursor:zoom-in;" title="Click to zoom">
         <img id="mainImg" src="{{ _img0 }}" alt="{{ product.name }}" />
         <div class="shimmer" id="shimmer"></div>
         <div class="img-badge" id="imgBadge"></div>
+        <div class="zoom-hint">🔍 Click to zoom</div>
       </div>
       <div class="view-toggle">
         <button class="view-btn active" id="btnStd" onclick="switchView('standard')">Standard View</button>
@@ -490,7 +599,7 @@
       <!-- Size selector -->
       <div class="sec-label">
         <span data-i18n="pd_size_label">Select Size</span>
-        <span class="size-guide">Size Guide ↗</span>
+        <span class="size-guide" onclick="openSizeGuide()" style="cursor:pointer;">Size Guide ↗</span>
       </div>
       <div class="size-grid">
         {% for size in product.sizes %}
@@ -570,9 +679,16 @@
   </div>
   {% endif %}
 
+  <!-- RECENTLY VIEWED -->
+  <div class="rv-section" id="rvSection" style="display:none">
+    <h2 class="rv-heading">Recently Viewed</h2>
+    <div class="rv-grid" id="rvGrid"></div>
+  </div>
+
 </main>
 
 <script src="/static/i18n.js"></script>
+<script src="/static/ui.js"></script>
 <script>
   // ─── Cursor ───────────────────────────────────────────────
   const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
@@ -794,6 +910,65 @@
       if(e.key==='ArrowLeft'&&all[i-1])all[i-1].focus();
     });
   });
+
+  // ─── Image Zoom Lightbox ──────────────────────────────────
+  function openZoom(wrap){
+    const src=document.getElementById('mainImg').src;
+    document.getElementById('zoomImg').src=src;
+    document.getElementById('zoomOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeZoom(e){
+    if(e===null||e.target===document.getElementById('zoomOverlay')){
+      document.getElementById('zoomOverlay').classList.remove('open');
+      document.body.style.overflow='';
+    }
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      closeZoom(null);
+      closeSizeGuide(null);
+    }
+  });
+
+  // ─── Size Guide Modal ─────────────────────────────────────
+  function openSizeGuide(){
+    document.getElementById('sgOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeSizeGuide(e){
+    if(e===null||e.target===document.getElementById('sgOverlay')){
+      document.getElementById('sgOverlay').classList.remove('open');
+      document.body.style.overflow='';
+    }
+  }
+
+  // ─── Recently Viewed ──────────────────────────────────────
+  (function(){
+    const KEY='foresta_rv';
+    const CURRENT={slug:'{{ product.slug }}',name:'{{ product.name|replace("'","\\'")|replace('"','\\"') }}',cover:'{{ _img0 }}',price:'{{ product.currency }}{{ product.price }}',url:'{{ url_for("product_detail",slug=product.slug) }}'};
+    let rv=[];
+    try{rv=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){}
+    rv=rv.filter(p=>p.slug!==CURRENT.slug);
+    rv.unshift(CURRENT);
+    if(rv.length>8)rv=rv.slice(0,8);
+    localStorage.setItem(KEY,JSON.stringify(rv));
+
+    // Show other recently viewed (exclude current)
+    const others=rv.filter(p=>p.slug!==CURRENT.slug).slice(0,4);
+    if(others.length>0){
+      const sec=document.getElementById('rvSection');
+      const grid=document.getElementById('rvGrid');
+      others.forEach(p=>{
+        const a=document.createElement('a');
+        a.href=p.url; a.className='rv-card';
+        a.innerHTML=`<div class="rv-img"><img src="${p.cover}" alt="${p.name}" loading="lazy"/></div>
+          <div class="rv-body"><div class="rv-name">${p.name}</div><div class="rv-price">${p.price}</div></div>`;
+        grid.appendChild(a);
+      });
+      sec.style.display='';
+    }
+  })();
 </script>
 </body>
 </html>

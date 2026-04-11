@@ -5,12 +5,13 @@ Run:  pip install flask flask-sqlalchemy werkzeug
 Admin: http://localhost:5000/admin  (password: foresta2025 or set ADMIN_PASSWORD env var)
 """
 
-import os, json, uuid, math, re
+import os, json, uuid, math, re, csv
 from datetime import datetime, timedelta
 from functools import wraps
+from io import StringIO
 from flask import (
     Flask, render_template, jsonify, abort,
-    request, redirect, url_for, session, flash
+    request, redirect, url_for, session, flash, Response
 )
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -111,11 +112,13 @@ class Order(db.Model):
     city       = db.Column(db.String(100))
     country    = db.Column(db.String(100))
     postal     = db.Column(db.String(20))
-    subtotal   = db.Column(db.Float, default=0)
-    shipping   = db.Column(db.Float, default=0)
-    total      = db.Column(db.Float, default=0)
-    status     = db.Column(db.String(30), default="confirmed")
-    gift_note  = db.Column(db.Text)
+    subtotal    = db.Column(db.Float, default=0)
+    shipping    = db.Column(db.Float, default=0)
+    discount    = db.Column(db.Float, default=0)
+    coupon_code = db.Column(db.String(50))
+    total       = db.Column(db.Float, default=0)
+    status      = db.Column(db.String(30), default="confirmed")
+    gift_note   = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     items      = db.relationship("OrderItem", backref="order", lazy=True, cascade="all, delete-orphan")
 
@@ -151,6 +154,19 @@ class Subscriber(db.Model):
     email      = db.Column(db.String(200), unique=True, nullable=False)
     source     = db.Column(db.String(50), default="newsletter")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Coupon(db.Model):
+    __tablename__ = "coupons"
+    id             = db.Column(db.Integer, primary_key=True)
+    code           = db.Column(db.String(50), unique=True, nullable=False)
+    discount_type  = db.Column(db.String(10), default="percent")  # "percent" or "fixed"
+    discount_value = db.Column(db.Float, nullable=False)
+    max_uses       = db.Column(db.Integer, default=0)   # 0 = unlimited
+    used_count     = db.Column(db.Integer, default=0)
+    active         = db.Column(db.Boolean, default=True)
+    expires_at     = db.Column(db.DateTime, nullable=True)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -347,6 +363,15 @@ def _get_wishlist():
 
 def get_wishlist_count():
     return len(_get_wishlist())
+
+
+def _get_coupon_session():
+    return session.get("coupon")  # {"code":..., "discount":..., "type":..., "value":...}
+
+def calculate_coupon_discount(coupon_obj, subtotal):
+    if coupon_obj.discount_type == "percent":
+        return round(subtotal * coupon_obj.discount_value / 100, 2)
+    return min(round(coupon_obj.discount_value, 2), subtotal)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -554,8 +579,13 @@ def checkout():
     items = get_cart_items()
     if not items: return redirect(url_for("cart"))
     sub = get_cart_subtotal(); shp = get_shipping(sub)
+    coupon_data = _get_coupon_session()
+    discount = coupon_data["discount"] if coupon_data else 0
+    total = max(round(sub + shp - discount, 2), 0)
     return render_template("checkout.html", items=items,
-        subtotal=sub, shipping=shp, total=round(sub+shp,2))
+        subtotal=sub, shipping=shp, discount=discount,
+        coupon_code=coupon_data["code"] if coupon_data else "",
+        total=total)
 
 
 @app.route("/checkout", methods=["POST"])
@@ -572,12 +602,17 @@ def checkout_post():
         return redirect(url_for("checkout"))
     order_id = str(uuid.uuid4())[:8].upper()
     sub = get_cart_subtotal(); shp = get_shipping(sub)
+    coupon_data = _get_coupon_session()
+    discount = coupon_data["discount"] if coupon_data else 0
+    total = max(round(sub + shp - discount, 2), 0)
     order = Order(
         order_id=order_id, name=name, email=email,
         phone=request.form.get("phone",""),
         address=address, city=city, country=country,
         postal=request.form.get("postal",""),
-        subtotal=sub, shipping=shp, total=round(sub+shp,2),
+        subtotal=sub, shipping=shp, discount=discount,
+        coupon_code=coupon_data["code"] if coupon_data else "",
+        total=total,
         gift_note=request.form.get("gift_note",""), status="confirmed",
     )
     db.session.add(order)
@@ -590,11 +625,17 @@ def checkout_post():
             size=item["size"], quantity=item["quantity"],
             price=item["product"]["price"], line_total=item["line_total"],
         ))
+    # Increment coupon used count
+    if coupon_data:
+        cpn = Coupon.query.filter_by(code=coupon_data["code"]).first()
+        if cpn:
+            cpn.used_count += 1
     # Subscribe email if not already
     if email and not Subscriber.query.filter_by(email=email.lower()).first():
         db.session.add(Subscriber(email=email.lower(), source="checkout"))
     db.session.commit()
     _save_cart([])
+    session.pop("coupon", None)
     session["last_order_id"] = order.id
     return redirect(url_for("order_success"))
 
@@ -632,6 +673,45 @@ def newsletter():
     db.session.add(Subscriber(email=email, source="newsletter"))
     db.session.commit()
     return jsonify({"success":True,"message":"Welcome to the forest. ✦"})
+
+
+# ── Coupons ───────────────────────────────────────────────────────
+
+@app.route("/coupon/apply", methods=["POST"])
+def coupon_apply():
+    data = request.get_json(silent=True) or request.form
+    code = (data.get("code") or "").strip().upper()
+    if not code:
+        return jsonify({"success": False, "error": "Please enter a coupon code"}), 400
+    coupon = Coupon.query.filter_by(code=code, active=True).first()
+    if not coupon:
+        return jsonify({"success": False, "error": "Invalid or inactive coupon code"}), 400
+    if coupon.expires_at and coupon.expires_at < datetime.utcnow():
+        return jsonify({"success": False, "error": "This coupon has expired"}), 400
+    if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
+        return jsonify({"success": False, "error": "This coupon has reached its usage limit"}), 400
+    sub = get_cart_subtotal()
+    if sub == 0:
+        return jsonify({"success": False, "error": "Your cart is empty"}), 400
+    discount = calculate_coupon_discount(coupon, sub)
+    session["coupon"] = {"code": code, "discount": discount,
+                         "type": coupon.discount_type, "value": coupon.discount_value}
+    session.modified = True
+    msg = (f"{int(coupon.discount_value)}% discount applied!"
+           if coupon.discount_type == "percent"
+           else f"${coupon.discount_value:.0f} discount applied!")
+    shp = get_shipping(sub)
+    total = max(round(sub + shp - discount, 2), 0)
+    return jsonify({"success": True, "message": msg, "discount": discount,
+                    "code": code, "total": total})
+
+
+@app.route("/coupon/remove", methods=["POST"])
+def coupon_remove():
+    session.pop("coupon", None)
+    session.modified = True
+    sub = get_cart_subtotal(); shp = get_shipping(sub)
+    return jsonify({"success": True, "total": round(sub + shp, 2)})
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -965,6 +1045,99 @@ def admin_subscriber_delete(sid):
     return redirect(url_for("admin_subscribers"))
 
 
+# ── Admin CSV Exports ─────────────────────────────────────────────
+
+@app.route("/admin/orders/export")
+@admin_required
+def admin_orders_export():
+    orders = Order.query.order_by(Order.created_at.desc()).all()
+    si = StringIO()
+    w = csv.writer(si)
+    w.writerow(["Order ID","Name","Email","Phone","Address","City","Country","Postal",
+                "Subtotal","Shipping","Discount","Coupon","Total","Status","Date"])
+    for o in orders:
+        w.writerow([o.order_id, o.name, o.email, o.phone or "", o.address, o.city,
+                    o.country, o.postal or "", o.subtotal, o.shipping,
+                    o.discount or 0, o.coupon_code or "", o.total, o.status,
+                    o.created_at.strftime("%Y-%m-%d %H:%M")])
+    return Response(si.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment;filename=foresta_orders.csv"})
+
+
+@app.route("/admin/subscribers/export")
+@admin_required
+def admin_subscribers_export():
+    subs = Subscriber.query.order_by(Subscriber.created_at.desc()).all()
+    si = StringIO()
+    w = csv.writer(si)
+    w.writerow(["Email","Source","Date"])
+    for s in subs:
+        w.writerow([s.email, s.source, s.created_at.strftime("%Y-%m-%d %H:%M")])
+    return Response(si.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment;filename=foresta_subscribers.csv"})
+
+
+# ── Admin Coupons ─────────────────────────────────────────────────
+
+@app.route("/admin/coupons")
+@admin_required
+def admin_coupons():
+    coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
+    return render_template("admin/coupons.html", coupons=coupons, active_nav="coupons")
+
+
+@app.route("/admin/coupons/new", methods=["GET", "POST"])
+@admin_required
+def admin_coupon_new():
+    if request.method == "POST":
+        code = request.form.get("code","").strip().upper()
+        if not code:
+            flash("Coupon code is required.", "error")
+            return redirect(request.referrer)
+        if Coupon.query.filter_by(code=code).first():
+            flash(f"Coupon '{code}' already exists.", "error")
+            return redirect(request.referrer)
+        expires_str = request.form.get("expires_at","").strip()
+        expires = None
+        if expires_str:
+            try:
+                expires = datetime.strptime(expires_str, "%Y-%m-%d")
+            except ValueError:
+                pass
+        coupon = Coupon(
+            code=code,
+            discount_type=request.form.get("discount_type","percent"),
+            discount_value=float(request.form.get("discount_value", 10) or 10),
+            max_uses=int(request.form.get("max_uses", 0) or 0),
+            active=True,
+            expires_at=expires,
+        )
+        db.session.add(coupon)
+        db.session.commit()
+        flash(f"Coupon '{code}' created.", "success")
+        return redirect(url_for("admin_coupons"))
+    return render_template("admin/coupon_form.html", active_nav="coupons")
+
+
+@app.route("/admin/coupons/<int:cid>/toggle", methods=["POST"])
+@admin_required
+def admin_coupon_toggle(cid):
+    coupon = db.session.get(Coupon, cid) or abort(404)
+    coupon.active = not coupon.active
+    db.session.commit()
+    flash(f"Coupon '{coupon.code}' {'activated' if coupon.active else 'deactivated'}.", "success")
+    return redirect(url_for("admin_coupons"))
+
+
+@app.route("/admin/coupons/<int:cid>/delete", methods=["POST"])
+@admin_required
+def admin_coupon_delete(cid):
+    coupon = db.session.get(Coupon, cid) or abort(404)
+    db.session.delete(coupon); db.session.commit()
+    flash("Coupon deleted.", "success")
+    return redirect(url_for("admin_coupons"))
+
+
 # ── API ───────────────────────────────────────────────────────────
 
 @app.route("/api/products")
@@ -985,6 +1158,44 @@ def api_cart():
                                "cover":i["product"]["cover"],"line_total":i["line_total"]}
                               for i in items],
                     "count":get_cart_count(),"subtotal":sub,"shipping":shp,"total":round(sub+shp,2)})
+
+
+# ── SEO ──────────────────────────────────────────────────────────
+
+@app.route("/robots.txt")
+def robots_txt():
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin/\n"
+        "Disallow: /cart\n"
+        "Disallow: /checkout\n"
+        "Disallow: /order-success\n\n"
+        "Sitemap: https://foresta.store/sitemap.xml\n"
+    )
+    return Response(content, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    products = Product.query.all()
+    base = request.host_url.rstrip("/")
+    urls = [
+        {"loc": "/",          "priority": "1.0", "changefreq": "weekly"},
+        {"loc": "/products",  "priority": "0.9", "changefreq": "daily"},
+    ]
+    for p in products:
+        urls.append({"loc": f"/product/{p.slug}", "priority": "0.8", "changefreq": "weekly"})
+    xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls:
+        xml_parts.append(
+            f'  <url><loc>{base}{u["loc"]}</loc>'
+            f'<changefreq>{u["changefreq"]}</changefreq>'
+            f'<priority>{u["priority"]}</priority></url>'
+        )
+    xml_parts.append("</urlset>")
+    return Response("\n".join(xml_parts), mimetype="application/xml")
 
 
 # ── Error handlers ────────────────────────────────────────────────
